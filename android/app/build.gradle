@@ -106,6 +106,8 @@ dependencies {
     implementation("com.facebook.react:react-android")
 
     implementation project(':capacitor-android')
+    // The same Portals as @ionic/portals-react-native, for PortalInsets.
+    implementation 'io.ionic:portals:0.13.1'
     implementation project(':capacitor-preferences')
     implementation project(':capacitor-community-sqlite')
     implementation project(':capacitor-nfc-pass-wallet')
