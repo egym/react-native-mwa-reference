@@ -41,6 +41,11 @@
     "react-test-renderer": "19.2.3",
     "typescript": "^6.0.3"
   },
+  "overrides": {
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^4.3.0"
+    }
+  },
   "engines": {
     "node": "^22.13.0 || ^24.3.0 || >= 26.0.0"
   }
