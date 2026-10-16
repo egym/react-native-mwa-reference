@@ -72,3 +72,6 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Bundler writes its own version into the lock file; CocoaPods versions are pinned in ios/Podfile.lock
+Gemfile.lock

@@ -4,3 +4,10 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 rootProject.name = 'ReactNativeMwaReference'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
+
+// React Native autolinking skips Capacitor plugins, so Capacitor core and the plugins build from node_modules.
+include ':capacitor-android', ':capacitor-preferences', ':capacitor-community-sqlite', ':capacitor-nfc-pass-wallet'
+project(':capacitor-android').projectDir = new File(settingsDir, '../node_modules/@capacitor/android/capacitor')
+project(':capacitor-preferences').projectDir = new File(settingsDir, '../node_modules/@capacitor/preferences/android')
+project(':capacitor-community-sqlite').projectDir = new File(settingsDir, '../node_modules/@capacitor-community/sqlite/android')
+project(':capacitor-nfc-pass-wallet').projectDir = new File(settingsDir, '../node_modules/@egym/capacitor-nfc-pass-wallet/android')

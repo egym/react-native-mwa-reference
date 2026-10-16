@@ -96,9 +96,19 @@ android {
     }
 }
 
+// Capacitor core comes from node_modules; Portals from Maven must not bring a second copy.
+configurations.configureEach {
+    exclude group: 'com.capacitorjs', module: 'core'
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-preferences')
+    implementation project(':capacitor-community-sqlite')
+    implementation project(':capacitor-nfc-pass-wallet')
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
