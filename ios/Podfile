@@ -23,6 +23,13 @@ target 'ReactNativeMwaReference' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  # Autolinking adds the @egym/capacitor-mwa-navigation pod. These two plugins of the package are not on CocoaPods trunk.
+  pod 'CapacitorCommunitySqlite', :path => '../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite'
+  pod 'CapacitorNFCPassWallet', :path => '../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet'
+  # Swift pods of the package import these as static libraries, which needs module maps.
+  pod 'SQLCipher', :modular_headers => true
+  pod 'CapacitorKeyboard', :modular_headers => true
+
   post_install do |installer|
     react_native_post_install(
       installer,
@@ -30,6 +37,15 @@ target 'ReactNativeMwaReference' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Xcode 27 refuses the 12.0 deployment target of the SQLCipher and ZIPFoundation pods that SQLite brings.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |build_configuration|
+        if build_configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.0
+          build_configuration.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+        end
+      end
+    end
   end
 end
 

@@ -6,6 +6,7 @@ import {
   subscribe,
   type Message,
 } from '@ionic/portals-react-native';
+import { egymMwaPortalPlugins } from '@egym/capacitor-mwa-navigation/react-native';
 import App from '../App';
 
 jest.mock(
@@ -86,6 +87,7 @@ test.each([
       syncOnAdd: true,
     });
     expect(portal.initialContext.startingRoute).toBe(`/${app}/home`);
+    expect(portal.plugins).toBe(egymMwaPortalPlugins);
     expect(buttonTitles(root)).toEqual([]);
   },
 );

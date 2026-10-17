@@ -1,33 +1,10 @@
-import { Platform } from 'react-native';
-import type { CapacitorPlugin, Portal } from '@ionic/portals-react-native';
+import type { Portal } from '@ionic/portals-react-native';
+import { egymMwaPortalPlugins } from '@egym/capacitor-mwa-navigation/react-native';
 
 export type Mwa = {
   title: string;
   portal: Portal;
 };
-
-const preferencesPlugin: CapacitorPlugin = {
-  androidClassPath: 'com.capacitorjs.plugins.preferences.PreferencesPlugin',
-  iosClassName: 'PreferencesPlugin',
-};
-
-const sqlitePlugin: CapacitorPlugin = {
-  androidClassPath:
-    'com.getcapacitor.community.database.sqlite.CapacitorSQLitePlugin',
-  iosClassName: 'CapacitorSQLitePlugin',
-};
-
-const nfcPassWalletPlugin: CapacitorPlugin = {
-  androidClassPath:
-    'com.egym.capacitor.nfcpasswallet.CapacitorNFCPassWalletPlugin',
-  iosClassName: 'CapacitorNFCPassWalletPlugin',
-};
-
-// The same plugins as the native reference apps: SQLite only on Android.
-const plugins = Platform.select({
-  android: [preferencesPlugin, sqlitePlugin, nfcPassWalletPlugin],
-  default: [preferencesPlugin, nfcPassWalletPlugin],
-});
 
 const sampleContext = {
   email: 'email@example.com',
@@ -55,7 +32,7 @@ const createPortal = (
 ): Portal => ({
   name: `egym-${app}`,
   startDir: `egym-${app}`,
-  plugins,
+  plugins: egymMwaPortalPlugins,
   initialContext: {
     startingRoute: `/${app}/home`,
     ...(member?.initialContext ?? sampleContext),
