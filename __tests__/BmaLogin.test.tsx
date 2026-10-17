@@ -16,6 +16,7 @@ jest.mock(
 jest.mock('@ionic/portals-react-native', () => ({
   PortalView: 'PortalView',
   subscribe: jest.fn(),
+  syncOne: jest.fn(),
 }));
 
 jest.mock('../src/bmaLogin/config', () => ({
@@ -192,7 +193,7 @@ test.each([
     expect(portal.liveUpdate).toEqual({
       appId,
       channel: 'test-channel',
-      syncOnAdd: true,
+      syncOnAdd: false,
     });
   },
 );
