@@ -33,7 +33,7 @@ const fetchMock = jest.fn();
 const publishString = jest.fn();
 let listeners: Listener[] = [];
 
-const loginUrl = 'https://galaxy.test/np/login';
+const loginUrl = 'https://galaxy.test/np/exerciser/login';
 const tokenUrl =
   'https://galaxy.test/np/micro-web-app/v1.0/exercisers/exerciser-1/tokens/FLS';
 
@@ -150,12 +150,14 @@ test('the login calls Galaxy and then asks for the MWA token', async () => {
     method: 'POST',
     credentials: 'omit',
     headers: {
+      Accept: 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      'X-NP-API-Version': '1.5',
       'X-NP-User-Agent': expect.stringMatching(
-        /^clientType=MOBILE_DEVICE; devicePlatform=IOS; deviceUid=[0-9A-F-]{36}; applicationName=Team;/,
+        /^clientType=MOBILE_DEVICE; devicePlatform=IOS; deviceUid=[0-9A-F-]{36}; applicationName=RevGen;/,
       ),
     },
-    body: 'username=member%40example.com&password=p%40ss%26word&club_portal=true',
+    body: 'username=member%40example.com&password=p%40ss%26word',
   });
   expect(fetchMock).toHaveBeenNthCalledWith(2, tokenUrl, tokenRequest);
   expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
