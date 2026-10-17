@@ -16,15 +16,20 @@ export type BmaSession = GalaxyLogin & {
 
 type BmaLoginFormProps = {
   galaxyURL: string;
+  notice: string | null;
   onLoggedIn: (session: BmaSession) => void;
 };
 
 /** The "auth as BMA user" screen: email and password of a member of the Galaxy brand. */
-export function BmaLoginForm({ galaxyURL, onLoggedIn }: BmaLoginFormProps) {
+export function BmaLoginForm({
+  galaxyURL,
+  notice,
+  onLoggedIn,
+}: BmaLoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(notice);
 
   const submit = async () => {
     if (isLoggingIn) {

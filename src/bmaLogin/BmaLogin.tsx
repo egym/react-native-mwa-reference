@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { NativeModules } from 'react-native';
+import { subscribe } from '@ionic/portals-react-native';
 import { MwaHome } from '../MwaHome';
 import { createMwas } from '../mwas';
 import { BmaLoginForm, type BmaSession } from './BmaLoginForm';
 import type { BmaLoginConfig } from './config';
+import { fetchMwaToken, GalaxyHttpError } from './galaxy';
 
 type BmaLoginProps = {
   config: BmaLoginConfig;
@@ -11,6 +14,51 @@ type BmaLoginProps = {
 /** Shows the login, then the MWA buttons with Workouts and NFC running as the logged-in member. */
 export function BmaLogin({ config }: BmaLoginProps) {
   const [session, setSession] = useState<BmaSession | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+    let isActive = true;
+    // An MWA asks for a new token after a 401, as in the BMA apps.
+    const subscription = subscribe('subscription', message => {
+      if (message.data?.type !== 'authToken') {
+        return;
+      }
+      fetchMwaToken(
+        config.galaxyURL,
+        session.exerciser.uuid,
+        session.cookie,
+      ).then(
+        token => {
+          if (isActive) {
+            // The SDK's publish would send { message: token }; the MWAs read a plain string.
+            NativeModules.PortalsStringPublisher.publish('authToken', token);
+          }
+        },
+        (error: unknown) => {
+          if (!isActive) {
+            return;
+          }
+          if (error instanceof GalaxyHttpError && error.rejectsSession) {
+            setNotice('The Galaxy session has ended. Log in again.');
+            setSession(null);
+          } else {
+            console.warn(
+              'Could not renew the MWA token:',
+              error instanceof Error ? error.message : error,
+            );
+          }
+        },
+      );
+    });
+
+    return () => {
+      isActive = false;
+      subscription.remove();
+    };
+  }, [config.galaxyURL, session]);
 
   const mwas = useMemo(
     () =>
@@ -35,5 +83,11 @@ export function BmaLogin({ config }: BmaLoginProps) {
   if (mwas) {
     return <MwaHome mwas={mwas} />;
   }
-  return <BmaLoginForm galaxyURL={config.galaxyURL} onLoggedIn={setSession} />;
+  return (
+    <BmaLoginForm
+      galaxyURL={config.galaxyURL}
+      notice={notice}
+      onLoggedIn={setSession}
+    />
+  );
 }

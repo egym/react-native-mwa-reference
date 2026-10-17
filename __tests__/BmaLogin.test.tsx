@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Text, TextInput } from 'react-native';
+import { Button, NativeModules, Text, TextInput } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 import {
   PortalView,
@@ -30,6 +30,7 @@ type Listener = (message: Message) => void;
 
 const subscribeMock = jest.mocked(subscribe);
 const fetchMock = jest.fn();
+const publishString = jest.fn();
 let listeners: Listener[] = [];
 
 const loginUrl = 'https://galaxy.test/np/login';
@@ -102,6 +103,14 @@ const logIn = async (root: ReactTestRenderer.ReactTestInstance) => {
   await pressButton(root, 'Log in');
 };
 
+const publishToSubscription = async (data: unknown) => {
+  await ReactTestRenderer.act(async () => {
+    listeners.forEach(listener =>
+      listener({ subscriptionRef: 1, topic: 'subscription', data }),
+    );
+  });
+};
+
 const texts = (root: ReactTestRenderer.ReactTestInstance) =>
   root.findAllByType(Text).map(text => text.props.children);
 
@@ -118,6 +127,7 @@ beforeEach(() => {
     } as unknown as ReturnType<typeof subscribe>;
   });
   globalThis.fetch = fetchMock;
+  NativeModules.PortalsStringPublisher = { publish: publishString };
 });
 
 test('the login shows instead of the MWA buttons', async () => {
@@ -209,4 +219,50 @@ test('a failed login shows the reason and keeps the form', async () => {
   expect(texts(root)).toContain('Galaxy answered with HTTP 401.');
   expect(buttonTitles(root)).toEqual(['Log in']);
   expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+test('a token request from an MWA gets a new token from Galaxy', async () => {
+  fetchMock
+    .mockResolvedValueOnce(loginResponse)
+    .mockResolvedValueOnce(response(200, { accessToken: 'token-1' }))
+    .mockResolvedValueOnce(response(200, { accessToken: 'token-2' }));
+  const root = await renderApp();
+  await logIn(root);
+  await pressButton(root, 'Workouts MWA');
+
+  await publishToSubscription({ type: 'authToken', data: { instanceId: 1 } });
+
+  expect(fetchMock).toHaveBeenNthCalledWith(3, tokenUrl, tokenRequest);
+  expect(publishString).toHaveBeenCalledWith('authToken', 'token-2');
+});
+
+test('other messages ask Galaxy for nothing', async () => {
+  fetchMock
+    .mockResolvedValueOnce(loginResponse)
+    .mockResolvedValueOnce(response(200, { accessToken: 'token-1' }));
+  const root = await renderApp();
+  await logIn(root);
+
+  await publishToSubscription({ type: 'trackEvent' });
+
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(publishString).not.toHaveBeenCalled();
+});
+
+test('a token renewal that Galaxy rejects goes back to the login', async () => {
+  fetchMock
+    .mockResolvedValueOnce(loginResponse)
+    .mockResolvedValueOnce(response(200, { accessToken: 'token-1' }))
+    .mockResolvedValueOnce(response(401));
+  const root = await renderApp();
+  await logIn(root);
+  await pressButton(root, 'Workouts MWA');
+
+  await publishToSubscription({ type: 'authToken' });
+
+  expect(publishString).not.toHaveBeenCalled();
+  expect(root.findAllByType(PortalView)).toHaveLength(0);
+  expect(buttonTitles(root)).toEqual(['Log in']);
+  expect(texts(root)).toContain('The Galaxy session has ended. Log in again.');
+  expect(listeners).toHaveLength(0);
 });
