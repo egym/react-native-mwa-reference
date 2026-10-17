@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-ReactNativeMwaReference.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-ReactNativeMwaReference.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		66430FF9E16EBAF6CC33B66A /* plugin-test in Resources */ = {isa = PBXBuildFile; fileRef = CF8BE827E2911DE92D80E855 /* plugin-test */; };
 		740750760EF0E2237AF7C5A3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
@@ -28,6 +29,7 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ReactNativeMwaReference/AppDelegate.swift; sourceTree = "<group>"; };
 		7DD7D8EFF56C3FD7E286B4FE /* PortalsStringPublisher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PortalsStringPublisher.swift; path = ReactNativeMwaReference/PortalsStringPublisher.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ReactNativeMwaReference/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		CF8BE827E2911DE92D80E855 /* plugin-test */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; name = "plugin-test"; path = "../debug-assets/plugin-test"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -53,6 +55,7 @@
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				7DD7D8EFF56C3FD7E286B4FE /* PortalsStringPublisher.swift */,
 				048404B048D28E8FC618F69C /* PortalsStringPublisher.m */,
+				CF8BE827E2911DE92D80E855 /* plugin-test */,
 			);
 			name = ReactNativeMwaReference;
 			sourceTree = "<group>";
@@ -167,6 +170,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				740750760EF0E2237AF7C5A3 /* PrivacyInfo.xcprivacy in Resources */,
+				66430FF9E16EBAF6CC33B66A /* plugin-test in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,6 +302,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				EXCLUDED_SOURCE_FILE_NAMES = "plugin-test";
 				INFOPLIST_FILE = ReactNativeMwaReference/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (

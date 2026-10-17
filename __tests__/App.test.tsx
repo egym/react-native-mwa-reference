@@ -62,10 +62,15 @@ beforeEach(() => {
   } as unknown as ReturnType<typeof subscribe>);
 });
 
-test('the home screen shows one button per MWA', async () => {
+test('the home screen shows one button per MWA and the debug plugin test', async () => {
   const root = await renderApp();
 
-  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+  expect(buttonTitles(root)).toEqual([
+    'Workouts MWA',
+    'Bioage MWA',
+    'NFC MWA',
+    'Plugin test',
+  ]);
   expect(root.findAllByType(PortalView)).toHaveLength(0);
 });
 
@@ -99,8 +104,24 @@ test('dismiss closes the MWA and ends the subscription', async () => {
   await publishToSubscription({ type: 'dismiss' });
 
   expect(root.findAllByType(PortalView)).toHaveLength(0);
-  expect(buttonTitles(root)).toHaveLength(3);
+  expect(buttonTitles(root)).toHaveLength(4);
   expect(removeSubscription).toHaveBeenCalledTimes(1);
+});
+
+test('the plugin test page gets the Workouts context and the NFC channel', async () => {
+  const root = await renderApp();
+
+  await openMwa(root, 'Plugin test');
+
+  const { portal } = root.findByType(PortalView).props;
+  expect(portal.startDir).toBe('plugin-test');
+  expect(portal.plugins).toBe(egymMwaPortalPlugins);
+  expect(portal.liveUpdate).toBeUndefined();
+  expect(portal.initialContext).toMatchObject({
+    startingRoute: '/workouts/home',
+    email: 'email@example.com',
+    nfcChannel: 'reference',
+  });
 });
 
 test('other messages keep the MWA open', async () => {

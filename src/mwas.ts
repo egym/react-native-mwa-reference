@@ -44,14 +44,28 @@ const createPortal = (
   },
 });
 
-// Bioage always runs with the sample context.
-export const createMwas = (member?: LoggedInMember): Mwa[] => [
-  {
-    title: 'Workouts MWA',
-    portal: createPortal('workouts', '851e0894', member),
+// Debug builds only: a bundled page that calls EgymMwaNavigation.open with the Workouts context (README).
+const createPluginTestPortal = (workouts: Portal): Portal => ({
+  name: 'plugin-test',
+  startDir: 'plugin-test',
+  plugins: egymMwaPortalPlugins,
+  initialContext: {
+    ...workouts.initialContext,
+    nfcChannel: workouts.liveUpdate?.channel,
   },
-  { title: 'Bioage MWA', portal: createPortal('bioage', '068a3720') },
-  { title: 'NFC MWA', portal: createPortal('nfc', 'dcbe378a', member) },
-];
+});
+
+// Bioage always runs with the sample context.
+export const createMwas = (member?: LoggedInMember): Mwa[] => {
+  const workouts = createPortal('workouts', '851e0894', member);
+  return [
+    { title: 'Workouts MWA', portal: workouts },
+    { title: 'Bioage MWA', portal: createPortal('bioage', '068a3720') },
+    { title: 'NFC MWA', portal: createPortal('nfc', 'dcbe378a', member) },
+    ...(__DEV__
+      ? [{ title: 'Plugin test', portal: createPluginTestPortal(workouts) }]
+      : []),
+  ];
+};
 
 export const mwas = createMwas();

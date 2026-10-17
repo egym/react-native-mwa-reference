@@ -94,6 +94,12 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
+    // The "Plugin test" page of debug builds (README).
+    sourceSets {
+        debug {
+            assets.srcDir('../../debug-assets')
+        }
+    }
 }
 
 // Capacitor core comes from node_modules; the Portals that @ionic/portals-react-native brings from Maven must not add a second copy.
