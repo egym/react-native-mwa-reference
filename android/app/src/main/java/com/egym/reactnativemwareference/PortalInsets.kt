@@ -27,7 +27,10 @@ object PortalInsets : FragmentManager.FragmentLifecycleCallbacks() {
         CapConfig.Builder(context)
             .setInitialFocus(false)
             .setPluginsConfiguration(
-                JSONObject().put("SystemBars", JSONObject().put("insetsHandling", "disable")))
+                JSONObject()
+                    .put("SystemBars", JSONObject().put("insetsHandling", "disable"))
+                    // The package's App plugin would otherwise take Android back from React Native.
+                    .put("App", JSONObject().put("disableBackButtonHandler", true)))
             .create())
   }
 
