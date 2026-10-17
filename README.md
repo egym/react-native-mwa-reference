@@ -53,7 +53,7 @@ Steps:
 
 Run `npm ci` again after any change to `package.json` or `package-lock.json`, and `bundle exec pod install` for iOS, because Xcode and Gradle build the plugin code inside `node_modules`. If `pod install` cannot find a pod version, run `bundle exec pod install --repo-update`.
 
-On a fresh install, the first open of each MWA shows an empty page on iOS and "Webpage not available" on Android while its live update downloads. On Android, go back and open it again. On iOS, close the app, start it again and open the MWA again. On iOS, the first tap on the back arrow of an MWA can do nothing; tap it again.
+Before each open the app syncs the MWA's live update, as the BMA apps do, so the first open on a fresh install shows no empty or error page: a loading view with a Close button shows until the newest build is on the device (`src/MwaScreen.tsx`). The SDK registers a live update only when it creates the native Portal view and reads the build only then, so the screen creates the view under the loading view, syncs, and creates it again when a new build arrived. The sync waits at most 30 seconds; after that, or when it fails, the app shows the build already on the device. On iOS, the first tap on the back arrow of an MWA can do nothing; tap it again.
 
 ## Log in as a BMA user (optional, EGYM internal)
 
