@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { BackHandler, StyleSheet } from 'react-native';
 import {
   PortalView,
@@ -12,7 +12,10 @@ type MwaScreenProps = {
   onClose: () => void;
 };
 
-export function MwaScreen({ portal, onClose }: MwaScreenProps) {
+export const MwaScreen = memo(function MwaScreen({
+  portal,
+  onClose,
+}: MwaScreenProps) {
   useEffect(() => {
     // An MWA asks its host to close it with a `dismiss` message on the `subscription` topic.
     const subscription = subscribe('subscription', message => {
@@ -40,7 +43,7 @@ export function MwaScreen({ portal, onClose }: MwaScreenProps) {
       <PortalView portal={{ ...portal }} style={styles.portal} />
     </SafeAreaView>
   );
-}
+});
 
 const styles = StyleSheet.create({
   screen: {

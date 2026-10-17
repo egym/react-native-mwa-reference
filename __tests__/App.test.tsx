@@ -18,6 +18,11 @@ jest.mock('@ionic/portals-react-native', () => ({
   subscribe: jest.fn(),
 }));
 
+// Without bma-login.json the app runs as before, whatever file a developer has locally.
+jest.mock('../src/bmaLogin/config', () => ({
+  loadBmaLoginConfig: () => null,
+}));
+
 const subscribeMock = jest.mocked(subscribe);
 const removeSubscription = jest.fn();
 
