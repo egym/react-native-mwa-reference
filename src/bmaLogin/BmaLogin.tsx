@@ -15,9 +15,11 @@ type BmaLoginProps = {
 export function BmaLogin({ config }: BmaLoginProps) {
   const [session, setSession] = useState<BmaSession | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const exerciserUuid = session?.exerciser.uuid;
+  const galaxyCookie = session?.cookie;
 
   useEffect(() => {
-    if (!session) {
+    if (exerciserUuid === undefined || galaxyCookie === undefined) {
       return;
     }
     let isActive = true;
@@ -26,16 +28,14 @@ export function BmaLogin({ config }: BmaLoginProps) {
       if (message.data?.type !== 'authToken') {
         return;
       }
-      fetchMwaToken(
-        config.galaxyURL,
-        session.exerciser.uuid,
-        session.cookie,
-      ).then(
+      fetchMwaToken(config.galaxyURL, exerciserUuid, galaxyCookie).then(
         token => {
-          if (isActive) {
-            // The SDK's publish would send { message: token }; the MWAs read a plain string.
-            NativeModules.PortalsStringPublisher.publish('authToken', token);
+          if (!isActive) {
+            return;
           }
+          // The SDK's publish would send { message: token }; the MWAs read a plain string.
+          NativeModules.PortalsStringPublisher.publish('authToken', token);
+          setSession(current => current && { ...current, accessToken: token });
         },
         (error: unknown) => {
           if (!isActive) {
@@ -58,7 +58,7 @@ export function BmaLogin({ config }: BmaLoginProps) {
       isActive = false;
       subscription.remove();
     };
-  }, [config.galaxyURL, session]);
+  }, [config.galaxyURL, exerciserUuid, galaxyCookie]);
 
   const mwas = useMemo(
     () =>

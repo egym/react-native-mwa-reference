@@ -266,3 +266,23 @@ test('a token renewal that Galaxy rejects goes back to the login', async () => {
   expect(texts(root)).toContain('The Galaxy session has ended. Log in again.');
   expect(listeners).toHaveLength(0);
 });
+
+test('a renewed token keeps the open MWA and reaches the next open', async () => {
+  fetchMock
+    .mockResolvedValueOnce(loginResponse)
+    .mockResolvedValueOnce(response(200, { accessToken: 'token-1' }))
+    .mockResolvedValueOnce(response(200, { accessToken: 'token-2' }));
+  const root = await renderApp();
+  await logIn(root);
+  await pressButton(root, 'Workouts MWA');
+  const openPortal = root.findByType(PortalView).props.portal;
+
+  await publishToSubscription({ type: 'authToken' });
+
+  expect(root.findByType(PortalView).props.portal).toBe(openPortal);
+  await publishToSubscription({ type: 'dismiss' });
+  await pressButton(root, 'NFC MWA');
+  expect(
+    root.findByType(PortalView).props.portal.initialContext.authToken,
+  ).toBe('token-2');
+});
