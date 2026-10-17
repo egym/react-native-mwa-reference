@@ -8,6 +8,7 @@ Example of a React Native app that hosts EGYM micro web apps (MWAs) in Ionic Por
 - Each button opens a full-screen `PortalView` for one Appflow app: Workouts `851e0894`, Bioage `068a3720` or NFC `dcbe378a`. All three load from the channel `reference` and sync their live update when the Portal is added (`syncOnAdd: true`).
 - Each Portal gets a sample initial context and the Capacitor plugins of the native reference apps, registered by class name: Preferences and the NFC pass wallet plugin on iOS, and community SQLite as well on Android. See `src/mwas.ts`.
 - When the MWA sends `dismiss` on the `subscription` topic, the screen closes and its subscription ends. Android back closes it too. See `src/MwaScreen.tsx`.
+- With a local `bma-login.json`, the app first logs in as a BMA user, for EGYM testing. See "Log in as a BMA user" below.
 
 ## Versions
 
@@ -50,6 +51,32 @@ Steps:
 Run `npm ci` again after any change to `package.json` or `package-lock.json`, and `bundle exec pod install` for iOS, because Xcode and Gradle build the plugin code inside `node_modules`. If `pod install` cannot find a pod version, run `bundle exec pod install --repo-update`.
 
 On a fresh install, the first open of each MWA shows an empty page on iOS and "Webpage not available" on Android while its live update downloads. On Android, go back and open it again. On iOS, close the app, start it again and open the MWA again. On iOS, the first tap on the back arrow of an MWA can do nothing; tap it again.
+
+## Log in as a BMA user (optional, EGYM internal)
+
+By default the app opens the MWAs with the sample context and no login. For EGYM testing, it can first log in as a member of a BMA (Galaxy) brand and then open Workouts and NFC as that member, the way the BMA apps do:
+
+1. Copy the example file in the repo root:
+   ```bash
+   cp bma-login.example.json bma-login.json
+   ```
+2. Set its three keys to the values of an EGYM test environment:
+   - `galaxyURL`: the Galaxy host of the member's brand.
+   - `mwaApiURL`: the mwa-api host of the same environment. Workouts and NFC send every request there.
+   - `liveUpdateChannel`: the Appflow channel that Workouts and NFC load from.
+3. Restart Metro (`npm start`) and run the app. It starts with "Auth as BMA user". Log in with the member's email and password.
+
+After the login, Workouts and NFC open on the channel from the file with `clientId` `egym`, the MWA token as `authToken`, the mwa-api host as `url`, the member's home gym as `gymLocation`, the email, `language` `en-US`, `preferences` `{}` and `linking` `{ status: 'linked', egymEmail }`. The context leaves out `emailJWT`, because the key alone turns on the MWA's consent guard, and `mwaProtocolVersion`, because this app does not handle `trackEvent`. Bioage keeps the sample context and the channel `reference`.
+
+How it works:
+
+- `src/bmaLogin/config.ts` reads the file with a `require` inside `try`. Metro treats such a require as optional: it bundles the file when it exists and builds without it when it does not, and the app then starts as described above. Metro looks for the file when it starts, so restart Metro after you add or delete the file. A release build takes the file that exists when it is built. A file with an empty key stops the app with a message that names the key.
+- The login makes the two Galaxy calls of the BMA apps: `POST /np/login`, then `GET /np/micro-web-app/v1.0/exercisers/{uuid}/tokens/FLS` with the session of the login (`src/bmaLogin/galaxy.ts`).
+- The app keeps Galaxy's session cookies in memory and sends them with each token call itself. The platform cookie store cannot keep them: on Android, each Capacitor Portal clears the session cookies of the WebView cookie store when it starts, and React Native's `fetch` uses the same store.
+- When an MWA asks for a new token (type `authToken` on the topic `subscription`), the app gets one from Galaxy and publishes it on the topic `authToken`. When Galaxy answers with 401 or 403, the session has ended, and the app goes back to the login.
+- The token goes out through `PortalsStringPublisher`, a small native module of this app (`PortalsStringPublisher.kt`, `PortalsStringPublisher.swift`). The SDK's `publish` wraps every value as `{ message: value }`, but the MWAs read the `authToken` topic as a plain string.
+
+The password goes only to Galaxy and is never stored or logged; iOS may offer to save it, as for any login form. The token and the session cookies stay in memory, so a new app start shows the login again. Never commit `bma-login.json`, a user, a password or a host name. To go back to the sample context, delete the file and restart Metro.
 
 ## Add a Capacitor plugin
 
