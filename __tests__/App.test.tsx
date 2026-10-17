@@ -254,6 +254,38 @@ test('an MWA reopened during a download shows the build that the download activa
   expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
 });
 
+test('a download that ends after the time limit still counts for a reopened MWA', async () => {
+  jest.useFakeTimers();
+  try {
+    let finishFirstSync: (result: SyncResult) => void = () => {};
+    syncOneMock
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          finishFirstSync = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(syncResult(false));
+    const root = await renderApp();
+    await openMwa(root, 'Workouts MWA');
+    await layOutPortal(root);
+    await ReactTestRenderer.act(() => jest.advanceTimersByTimeAsync(30_000));
+
+    expect(buttonTitles(root)).toEqual([]);
+
+    await publishToSubscription({ type: 'dismiss' });
+    await openMwa(root, 'Workouts MWA');
+    const reopenedPortalView = root.findByType(PortalView);
+    await ReactTestRenderer.act(async () => finishFirstSync(syncResult(true)));
+    await layOutPortal(root);
+
+    expect(syncOneMock).toHaveBeenCalledTimes(2);
+    expect(buttonTitles(root)).toEqual([]);
+    expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
+  } finally {
+    jest.useRealTimers();
+  }
+});
+
 test('dismiss closes the MWA and ends the subscription', async () => {
   const root = await renderApp();
   await openMwa(root, 'NFC MWA');
