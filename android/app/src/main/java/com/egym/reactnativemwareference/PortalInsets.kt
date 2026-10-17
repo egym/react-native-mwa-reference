@@ -8,6 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.egym.capacitor.mwanavigation.EgymMwa
 import com.getcapacitor.CapConfig
 import io.ionic.portals.PortalFragment
 import org.json.JSONObject
@@ -32,6 +33,8 @@ object PortalInsets : FragmentManager.FragmentLifecycleCallbacks() {
                     // The package's App plugin would otherwise take Android back from React Native.
                     .put("App", JSONObject().put("disableBackButtonHandler", true)))
             .create())
+    // The package's Status Bar plugin makes the MWA add its own safe area padding on top of this screen's.
+    f.addWebViewListener(EgymMwa.zeroCssSafeAreaListener())
   }
 
   override fun onFragmentViewCreated(

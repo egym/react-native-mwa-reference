@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { BackHandler, StyleSheet } from 'react-native';
+import { BackHandler, Platform, StyleSheet } from 'react-native';
 import {
   PortalView,
   subscribe,
@@ -38,7 +38,11 @@ export function MwaScreen({ portal, onClose }: MwaScreenProps) {
   }, [onClose]);
 
   return (
-    <SafeAreaView style={styles.screen}>
+    // On iOS the Portal runs edge to edge: with the package's Status Bar plugin the MWA pads the safe area itself.
+    <SafeAreaView
+      style={styles.screen}
+      edges={Platform.OS === 'ios' ? [] : undefined}
+    >
       <PortalView portal={portalCopy} style={styles.portal} />
     </SafeAreaView>
   );
