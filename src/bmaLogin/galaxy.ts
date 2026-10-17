@@ -34,7 +34,7 @@ const deviceUid = [8, 4, 4, 4, 12].map(randomHex).join('-').toUpperCase();
 
 const userAgent = `clientType=MOBILE_DEVICE; devicePlatform=${
   Platform.OS === 'ios' ? 'IOS' : 'ANDROID'
-}; deviceUid=${deviceUid}; applicationName=Team; applicationVersion=3.64; applicationVersionCode=501;`;
+}; deviceUid=${deviceUid}; applicationName=RevGen; applicationVersion=100.0; applicationVersionCode=8598;`;
 
 const send = async (url: string, init: RequestInit) => {
   // `omit` keeps the app's cookie store out of it: on Android each Capacitor Portal clears its session cookies.
@@ -77,15 +77,18 @@ export const logIn = async (
   email: string,
   password: string,
 ): Promise<GalaxyLogin> => {
-  const response = await send(`${galaxyURL}/np/login`, {
+  // The member login of the BMA apps; /np/login with club_portal is the staff login and refuses members.
+  const response = await send(`${galaxyURL}/np/exerciser/login`, {
     method: 'POST',
     headers: {
+      Accept: 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      'X-NP-API-Version': '1.5',
       'X-NP-User-Agent': userAgent,
     },
     body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(
       password,
-    )}&club_portal=true`,
+    )}`,
   });
   const json = await readJson(response);
   return {
