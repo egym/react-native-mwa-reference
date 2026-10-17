@@ -130,12 +130,20 @@ test('the loading view stays until the live update sync ends', async () => {
   const firstPortalView = root.findByType(PortalView);
 
   expect(buttonTitles(root)).toEqual(['Close']);
+  const hiddenFromScreenReaders = root.findByProps({
+    importantForAccessibility: 'no-hide-descendants',
+  });
+  expect(hiddenFromScreenReaders.props.accessibilityElementsHidden).toBe(true);
+  expect(hiddenFromScreenReaders.findByType(PortalView)).toBe(firstPortalView);
 
   await ReactTestRenderer.act(async () => finishSync(syncResult(true)));
 
   expect(buttonTitles(root)).toEqual([]);
   expect(root.findByType(PortalView)).not.toBe(firstPortalView);
   expect(syncOneMock).toHaveBeenCalledTimes(1);
+  expect(
+    root.findAllByProps({ importantForAccessibility: 'no-hide-descendants' }),
+  ).toHaveLength(0);
 });
 
 test('without a new build the Portal view stays as it is', async () => {
@@ -203,6 +211,54 @@ test('Close on the loading view closes the MWA', async () => {
 
   expect(root.findAllByType(PortalView)).toHaveLength(0);
   expect(buttonTitles(root)).toEqual(homeTitles);
+});
+
+test('an MWA reopened during a download waits for that download', async () => {
+  let finishSync: (result: SyncResult) => void = () => {};
+  syncOneMock.mockReturnValue(
+    new Promise(resolve => {
+      finishSync = resolve;
+    }),
+  );
+  const root = await renderApp();
+  await openMwa(root, 'Workouts MWA');
+  await layOutPortal(root);
+  await openMwa(root, 'Close');
+  await openMwa(root, 'Workouts MWA');
+  const reopenedPortalView = root.findByType(PortalView);
+  await layOutPortal(root);
+
+  expect(buttonTitles(root)).toEqual(['Close']);
+
+  await ReactTestRenderer.act(async () => finishSync(syncResult(true)));
+
+  expect(syncOneMock).toHaveBeenCalledTimes(1);
+  expect(buttonTitles(root)).toEqual([]);
+  expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
+});
+
+test('an MWA reopened during a download shows the build that the download activated', async () => {
+  let finishFirstSync: (result: SyncResult) => void = () => {};
+  syncOneMock
+    .mockReturnValueOnce(
+      new Promise(resolve => {
+        finishFirstSync = resolve;
+      }),
+    )
+    .mockResolvedValueOnce(syncResult(false));
+  const root = await renderApp();
+  await openMwa(root, 'Workouts MWA');
+  await layOutPortal(root);
+  await openMwa(root, 'Close');
+  await openMwa(root, 'Workouts MWA');
+  const reopenedPortalView = root.findByType(PortalView);
+
+  await ReactTestRenderer.act(async () => finishFirstSync(syncResult(true)));
+  await layOutPortal(root);
+
+  expect(syncOneMock).toHaveBeenCalledTimes(2);
+  expect(buttonTitles(root)).toEqual([]);
+  expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
 });
 
 test('dismiss closes the MWA and ends the subscription', async () => {

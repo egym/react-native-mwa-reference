@@ -10,56 +10,15 @@ import {
 import {
   PortalView,
   subscribe,
-  syncOne,
   type Portal,
-  type SyncResult,
 } from '@ionic/portals-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { buildChangeCount, syncLiveUpdate } from './liveUpdateSync';
 
 type MwaScreenProps = {
   portal: Portal;
   onClose: () => void;
 };
-
-const SYNC_TIMEOUT_MS = 30_000;
-const REGISTRATION_WAIT_MS = 3_000;
-const RETRY_DELAY_MS = 200;
-
-const wait = (ms: number) =>
-  new Promise<void>(resolve => {
-    setTimeout(() => resolve(), ms);
-  });
-
-// The native view registers the live update a moment after its first layout, so a failed sync is retried briefly.
-const syncOneWhenRegistered = async (appId: string): Promise<SyncResult> => {
-  const giveUpAt = Date.now() + REGISTRATION_WAIT_MS;
-  for (;;) {
-    try {
-      return await syncOne(appId);
-    } catch (error) {
-      if (Date.now() >= giveUpAt) {
-        throw error;
-      }
-      await wait(RETRY_DELAY_MS);
-    }
-  }
-};
-
-/** Syncs the live update for at most 30 seconds; true when a new build became the active one. */
-const syncLiveUpdate = (appId: string) =>
-  new Promise<boolean>(resolve => {
-    const timer = setTimeout(() => resolve(false), SYNC_TIMEOUT_MS);
-    syncOneWhenRegistered(appId).then(
-      result => {
-        clearTimeout(timer);
-        resolve(result.activeApplicationPathChanged);
-      },
-      () => {
-        clearTimeout(timer);
-        resolve(false);
-      },
-    );
-  });
 
 type PortalLayerProps = {
   portal: Portal;
@@ -88,6 +47,7 @@ export const MwaScreen = memo(function MwaScreen({
   const [isLoading, setIsLoading] = useState(true);
   const hasStartedSync = useRef(false);
   const isMounted = useRef(true);
+  const buildChangesAtOpen = useRef(buildChangeCount(portal.liveUpdate?.appId));
 
   useEffect(() => {
     isMounted.current = true;
@@ -112,7 +72,8 @@ export const MwaScreen = memo(function MwaScreen({
     };
   }, [onClose]);
 
-  // The SDK reads the build only when it creates the native view, so sync after its first layout and create it again.
+  // The SDK reads the build only when it creates the native view, so sync after its first layout and create it again
+  // when the build changed after this screen opened, also by the sync of an earlier screen.
   const syncAfterFirstLayout = useCallback(() => {
     if (hasStartedSync.current) {
       return;
@@ -123,11 +84,11 @@ export const MwaScreen = memo(function MwaScreen({
       setIsLoading(false);
       return;
     }
-    syncLiveUpdate(appId).then(hasNewBuild => {
+    syncLiveUpdate(appId).then(() => {
       if (!isMounted.current) {
         return;
       }
-      if (hasNewBuild) {
+      if (buildChangeCount(appId) !== buildChangesAtOpen.current) {
         setPortalKey(key => key + 1);
       }
       setIsLoading(false);
@@ -140,11 +101,17 @@ export const MwaScreen = memo(function MwaScreen({
       style={styles.screen}
       edges={Platform.OS === 'ios' ? [] : undefined}
     >
-      <PortalLayer
-        key={portalKey}
-        portal={portal}
-        onLayout={syncAfterFirstLayout}
-      />
+      <View
+        style={styles.portal}
+        accessibilityElementsHidden={isLoading}
+        importantForAccessibility={isLoading ? 'no-hide-descendants' : 'auto'}
+      >
+        <PortalLayer
+          key={portalKey}
+          portal={portal}
+          onLayout={syncAfterFirstLayout}
+        />
+      </View>
       {isLoading ? (
         <View style={styles.loading}>
           <ActivityIndicator />
