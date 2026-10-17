@@ -73,7 +73,9 @@ export function BmaLoginForm({
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        autoCapitalize="none"
         autoComplete="current-password"
+        autoCorrect={false}
         textContentType="password"
         onSubmitEditing={submit}
       />
