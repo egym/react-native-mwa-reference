@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Button,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -28,6 +29,7 @@ export function BmaLoginForm({
 }: BmaLoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState(notice);
 
@@ -67,18 +69,33 @@ export function BmaLoginForm({
         keyboardType="email-address"
         textContentType="username"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        autoCapitalize="none"
-        autoComplete="current-password"
-        autoCorrect={false}
-        textContentType="password"
-        onSubmitEditing={submit}
-      />
+      <View style={styles.passwordRow}>
+        <TextInput
+          style={[styles.input, styles.passwordInput]}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!isPasswordVisible}
+          autoCapitalize="none"
+          autoComplete="current-password"
+          autoCorrect={false}
+          textContentType="password"
+          onSubmitEditing={submit}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            isPasswordVisible ? 'Hide password' : 'Show password'
+          }
+          hitSlop={8}
+          onPress={() => setIsPasswordVisible(visible => !visible)}
+          style={styles.passwordToggle}
+        >
+          <Text style={styles.passwordToggleText}>
+            {isPasswordVisible ? 'Hide' : 'Show'}
+          </Text>
+        </Pressable>
+      </View>
       <View style={styles.actions}>
         {isLoggingIn ? (
           <ActivityIndicator />
@@ -116,6 +133,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     color: '#000000',
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  passwordToggle: {
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+  passwordToggleText: {
+    fontSize: 16,
+    color: '#007aff',
   },
   actions: {
     minHeight: 40,
