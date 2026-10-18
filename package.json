@@ -10,11 +10,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "@capacitor-community/sqlite": "^8.1.1",
     "@capacitor/android": "^8.5.3",
-    "@capacitor/core": "^8.5.3",
-    "@capacitor/preferences": "^8.0.1",
-    "@egym/capacitor-nfc-pass-wallet": "^0.4.0",
+    "@egym/capacitor-mwa-navigation": "file:../../libs/lib-capacitor-mwa-navigation",
     "@ionic/portals-react-native": "0.10.0-beta.0",
     "react": "19.2.3",
     "react-native": "0.87.1",

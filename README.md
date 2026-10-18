@@ -2,12 +2,14 @@
 
 Example of a React Native app that hosts EGYM micro web apps (MWAs) in Ionic Portals and exposes native mobile features to them. It does what [ios-mwa-reference](https://github.com/egym/ios-mwa-reference) and [android-mwa-reference](https://github.com/egym/android-mwa-reference) do, in a plain React Native CLI app with TypeScript and the new architecture, without Expo.
 
+This branch is a proof of concept: the app takes Portals, Capacitor and the Capacitor plugins from the EGYM package `@egym/capacitor-mwa-navigation`, which it installs from a local folder. See "EGYM MWA navigation package" below.
+
 ## What the app does
 
-- The home screen has three buttons: "Workouts MWA", "Bioage MWA" and "NFC MWA".
-- Each button opens a full-screen `PortalView` for one Appflow app: Workouts `851e0894`, Bioage `068a3720` or NFC `dcbe378a`. All three load from the channel `reference` and sync their live update when the Portal is added (`syncOnAdd: true`).
-- Each Portal gets a sample initial context and the Capacitor plugins of the native reference apps, registered by class name: Preferences and the NFC pass wallet plugin on iOS, and community SQLite as well on Android. See `src/mwas.ts`.
-- When the MWA sends `dismiss` on the `subscription` topic, the screen closes and its subscription ends. Android back closes it too. See `src/MwaScreen.tsx`.
+- The home screen has four buttons: "Workouts MWA", "Bioage MWA", "NFC MWA" and "Reference MWA".
+- Each button calls `EgymMwa.open` from `@egym/capacitor-mwa-navigation/react-native` for one Appflow app: Workouts `851e0894`, Bioage `068a3720` or NFC `dcbe378a` on the channel `reference`, or the web reference MWA `9d727e58` on the channel `develop`, with a sample initial context. See `src/mwas.ts` and `src/MwaHome.tsx`.
+- The web reference MWA demos the EGYM plugins. Its page "Test MWA Navigation" opens NFC through the `EgymMwaNavigation` plugin with one tap (egym/mwa-reference#45; until that is deployed to `develop`, the page is not there).
+- The package shows the MWA in its own native full-screen screen, with its `EgymMwaNavigation` plugin and the nine Capacitor plugins that EGYM MWAs need. It closes the screen when the MWA sends `dismiss`, and on Android back. The app writes no code for this.
 - With a local `bma-login.json`, the app first logs in as a BMA user, for EGYM testing. See "Log in as a BMA user" below.
 
 ## Versions
@@ -15,7 +17,7 @@ Example of a React Native app that hosts EGYM micro web apps (MWAs) in Ionic Por
 - React Native 0.87.1.
 - `@ionic/portals-react-native` 0.10.0-beta.0, pinned exactly. It is the newest release of the SDK and the first one that uses Portals 0.13.1 or later on Android, which needs no Portals key. The `latest` release, 0.9.1, uses `io.ionic:portals:0.13.0-rn.1` on Android, which still asks for a key. The beta is built on React Native 0.87.1. Move to the stable release when it ships.
 - Ionic Portals 0.13.2 on iOS (CocoaPods) and 0.13.1 on Android, as the SDK asks.
-- Capacitor 8.5.3, `@capacitor/preferences` 8, `@egym/capacitor-nfc-pass-wallet` 0.4 and `@capacitor-community/sqlite` 8.
+- Capacitor 8, Live Updates 0.5 and the Capacitor plugins come from `@egym/capacitor-mwa-navigation`.
 
 No Portals key, token or password is needed, and none is stored in this repo.
 
@@ -29,7 +31,7 @@ You need:
 
 Steps:
 
-1. Install the npm packages:
+1. This branch installs `@egym/capacitor-mwa-navigation` from a local folder: `package.json` points at `../../libs/lib-capacitor-mwa-navigation`, relative to this checkout. Run `npm install` in the package folder first. If your checkout sits elsewhere, run `npm install <path to the package folder>` here instead of `npm ci`. Then install the npm packages:
    ```bash
    npm ci
    ```
@@ -50,7 +52,9 @@ Steps:
 
 Run `npm ci` again after any change to `package.json` or `package-lock.json`, and `bundle exec pod install` for iOS, because Xcode and Gradle build the plugin code inside `node_modules`. If `pod install` cannot find a pod version, run `bundle exec pod install --repo-update`.
 
-Before each open the app syncs the MWA's live update, as the BMA apps do, so the first open on a fresh install shows no empty or error page: a loading view with a Close button shows until the newest build is on the device (`src/MwaScreen.tsx`). The SDK registers a live update only when it creates the native Portal view and reads the build only then, so the screen creates the view under the loading view, syncs, and creates it again when a new build arrived. The sync waits at most 30 seconds; after that, or when it fails, the app shows the build already on the device. On iOS, the first tap on the back arrow of an MWA can do nothing; tap it again.
+After you update the package folder, run `npm run build` in the package folder, because this app reads the package's built `dist/` folder. Also delete `android/build/generated/autolinking`. The React Native Gradle plugin keeps its autolinking config until `package-lock.json` changes, and a linked local package does not change it, so Android would build without the package's native module.
+
+Before each open the package syncs the MWA's live update, as the BMA apps do, so the first open on a fresh install shows no empty or error page: a loading view with a close button shows until the newest build is on the device. An open during a running download waits for that download. The sync waits at most 30 seconds; after that, or when it fails, the package shows the build already on the device, and with none it shows "Try again" and "Close". On iOS, the first tap on the back arrow of an MWA can do nothing; tap it again.
 
 ## Log in as a BMA user (optional, EGYM internal)
 
@@ -73,35 +77,62 @@ How it works:
 - `src/bmaLogin/config.ts` reads the file with a `require` inside `try`. Metro treats such a require as optional: it bundles the file when it exists and builds without it when it does not, and the app then starts as described above. Metro looks for the file when it starts, so restart Metro after you add or delete the file. A release build takes the file that exists when it is built. A file with an empty key stops the app with a message that names the key.
 - The login makes the two Galaxy calls of the BMA apps: the member login `POST /np/exerciser/login`, then `GET /np/micro-web-app/v1.0/exercisers/{uuid}/tokens/FLS` with the session of the login (`src/bmaLogin/galaxy.ts`).
 - The app keeps Galaxy's session cookies in memory and sends them with each token call itself. The platform cookie store cannot keep them: on Android, each Capacitor Portal clears the session cookies of the WebView cookie store when it starts, and React Native's `fetch` uses the same store.
-- When an MWA asks for a new token (type `authToken` on the topic `subscription`), the app gets one from Galaxy and publishes it on the topic `authToken`. When Galaxy answers with 401 or 403, the session has ended, and the app goes back to the login.
+- When an MWA asks for a new token (type `authToken` on the topic `subscription`), the app gets one from Galaxy and publishes it on the topic `authToken`. The package relays the request from its screen to the app and the answer back. The next open starts with the new token. When Galaxy answers with 401 or 403, the session has ended: the app calls `EgymMwa.close()`, so every package screen closes, and goes back to the login.
 - The token goes out through `PortalsStringPublisher`, a small native module of this app (`PortalsStringPublisher.kt`, `PortalsStringPublisher.swift`). The SDK's `publish` wraps every value as `{ message: value }`, but the MWAs read the `authToken` topic as a plain string.
 
 The password goes only to Galaxy and is never stored or logged; iOS may offer to save it, as for any login form. The token and the session cookies stay in memory, so a new app start shows the login again. Never commit `bma-login.json`, a user, a password or a host name. To go back to the sample context, delete the file and restart Metro.
 
-## Add a Capacitor plugin
+## Capacitor plugins
 
-1. Install it from npm: `npm install <plugin>`.
-2. iOS: run `bundle exec pod install` in `ios`. React Native autolinking adds the plugin's pod.
-3. Android: React Native autolinking skips Capacitor plugins, so add the plugin's Gradle module by hand. In `android/settings.gradle`, add it to the `include` line and set its `projectDir` to `../node_modules/<plugin>/android`. In `android/app/build.gradle`, add `implementation project(':<name>')`.
-4. Register the plugin on each Portal in `src/mwas.ts` with `androidClassPath`, the full Java class name, and `iosClassName`, the Objective-C class name, which most plugins set with `@objc(...)` in their Swift code.
-5. For a plugin that one platform does not use, list it only for the other platform in `src/mwas.ts` and turn its autolinking off in `react-native.config.js`, as this app does for SQLite on iOS.
+The package screen registers the package's own plugin list. A Capacitor plugin that the EGYM MWAs need goes into the package, not into this app.
 
 Android takes Capacitor core only from `@capacitor/android` in `node_modules`, and `android/app/build.gradle` excludes the copy that Portals brings from Maven, so the app holds one Capacitor core.
 
 ## Android: system bars and the keyboard
 
-The SDK has no field for a Capacitor config. Without one, the first Portal lets Capacitor 8's SystemBars plugin pad the whole React Native window for the system bars until the app restarts. On a WebView 140 or newer, Capacitor's `SystemBars.java` passes the bar insets to the MWA instead, so the MWA would pad again inside the screen's safe area.
+The package screen is its own activity. It pads the system bars and the keyboard itself and sets the Capacitor config of its Portal, so this app needs no Portal config.
 
-`PortalInsets.kt`, registered in `MainActivity.kt`, handles every Portal the SDK creates:
+## EGYM MWA navigation package
 
-- It sets the Capacitor config `SystemBars.insetsHandling: "disable"`, as the native Android reference does.
-- It passes zero bar insets to the Portal's WebView, because the React Native screen keeps the Portal clear of the bars with `SafeAreaView`.
-- It pads the Portal above the keyboard, because the edge-to-edge window does not resize for it.
+`@egym/capacitor-mwa-navigation` carries Capacitor 8, Ionic Portals 0.13, Live Updates 0.5, nine Capacitor plugins (Preferences, App, Haptics, Keyboard, Status Bar, Browser, Device, community SQLite and the EGYM NFC wallet plugin) and two ways to open an MWA full screen: the open call `EgymMwa.open`, which this app uses, and the plugin `EgymMwaNavigation`, with which an MWA can open another MWA (today only NFC, `dcbe378a`). The package closes both on `dismiss`, so the host writes no live update or `dismiss` code. The package is not published yet, so this branch installs it from a local folder.
 
-Keep `PortalInsets` when you copy the Portal screen into another React Native app.
+What this branch changes in the host:
+
+- `package.json` lists the package in place of the app's own `@capacitor/core`, Preferences, SQLite and NFC wallet entries.
+- `src/MwaHome.tsx` calls `EgymMwa.open` from `@egym/capacitor-mwa-navigation/react-native`, a module that imports nothing from `@capacitor/core`. The app shows no `PortalView` of its own.
+- iOS: React Native autolinking adds the package's pod with its default subspec `Core`. The `Podfile` adds the subspec `ReactNative`, which holds the native module behind `EgymMwa.open`, and SQLite and the NFC wallet plugin from the package's `node_modules`, because CocoaPods trunk has neither. It gives SQLCipher and CapacitorKeyboard module maps, which the package's Swift pods need when pods build as static libraries, and raises the deployment target of the SQLCipher and ZIPFoundation pods from 12.0 to 15.0, which Xcode 27 needs.
+- Android: `settings.gradle` includes the package's Gradle module, and SQLite and the NFC wallet plugin from the package's `node_modules`. `app/build.gradle` depends on `:egym-capacitor-mwa-navigation`. React Native autolinking finds the package's native module through its `react-native.config.cjs` and adds `EgymMwaReactNativePackage` to the app's package list.
+- `metro.config.js` watches the package folder, because npm links a local folder into `node_modules` and Metro follows a link only into watched folders. It also adds the app's `node_modules` to `resolver.nodeModulesPaths`, because Metro resolves the linked package's own imports, such as `react-native`, from the package's real folder.
+
+Host lines that stay with the package:
+
+- iOS: the `ReactNative` subspec line, the two `:path` pods, the two `:modular_headers` pods and the deployment target fix in the `Podfile`, and the existing dynamic framework setting for Capacitor.
+- Android: the `include` and `projectDir` lines, because only the app's `settings.gradle` can add Gradle projects; `@capacitor/android` and the `:capacitor-android` project, because the SQLite module depends on it; the exclude of the Capacitor core from Maven, because the Portals that the SDK brings from Maven would add a second core.
+- `watchFolders` and `resolver.nodeModulesPaths` in `metro.config.js`, only while the package comes from a local folder.
+
+The NFC MWA calls the wallet plugin as `CapacitorNFCPassWallet`: on its home screen it asks `isWalletAvailable` and shows "Add to Google Wallet" or "Add to Apple Wallet" only when the answer is true. When that button shows, the plugin works in this app.
+
+The Workouts and NFC builds on the channel `reference` predate the MWAs' CSS safe area fallback and pad a fixed 40px, so with the package they show 40px more at the top and 20px more at the bottom. Newer builds pad once.
+
+## Try the navigation plugin without a login
+
+Call `open` from the Workouts WebView. On Android, open Workouts, connect Chrome DevTools to its WebView (`chrome://inspect`) and run:
+
+```js
+const context = JSON.parse(AndroidInitialContext.initialContext()).value;
+Capacitor.Plugins.EgymMwaNavigation.open({
+  appId: 'dcbe378a',
+  channel: 'reference',
+  startingRoute: '/nfc/home',
+  initialContext: { ...context, startingRoute: '/nfc/home' },
+}).then(console.log, console.error);
+```
+
+On iOS, use the Simulator's WebKit inspector (Safari, Develop menu) on the Workouts WebView of a debug build, and pass `{ ...window.portalInitialContext.value, startingRoute: '/nfc/home' }` as `initialContext`.
+
+NFC opens full screen. Its back arrow resolves the call with `closedBy: 'dismiss'`, and Android back with `closedBy: 'back'`. A second call while NFC is up rejects with `BUSY`, and a call for another app id rejects with `NOT_ALLOWED`.
 
 ## Notes
 
-- `PortalView` writes to the portal object it gets, and development builds freeze props, so `src/MwaScreen.tsx` passes a copy.
-- `@egym/capacitor-nfc-pass-wallet` 0.4.0 uses `proguard-android.txt`, which the Android Gradle plugin 9 rejects. `android/gradle.properties` turns that check off with `android.r8.proguardAndroidTxt.disallowed=false` until the plugin moves to `proguard-android-optimize.txt`.
-- Checks: `npm run lint`, `npx tsc --noEmit` and `npm test`.
+- The NFC wallet plugin 0.4.0 that the package brings uses `proguard-android.txt`, which the Android Gradle plugin 9 rejects. `android/gradle.properties` turns that check off with `android.r8.proguardAndroidTxt.disallowed=false` until the plugin moves to `proguard-android-optimize.txt`.
+- Checks: `npm run lint`, `npx tsc --noEmit` and `npm test`. Jest does not bundle the app, so also run `npx react-native bundle --platform android --dev true --entry-file index.js --bundle-output /tmp/app.bundle.js` after a change to the package or to `metro.config.js`.

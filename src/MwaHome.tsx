@@ -1,30 +1,34 @@
-import { useCallback, useState } from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MwaScreen } from './MwaScreen';
+import { EgymMwa } from '@egym/capacitor-mwa-navigation/react-native';
 import type { Mwa } from './mwas';
 
 type MwaHomeProps = {
   mwas: Mwa[];
 };
 
+// The package shows the MWA full screen, loads its live update first and closes it on dismiss or back.
+const openMwa = ({ title, appId, channel, startingRoute, initialContext }: Mwa) => {
+  EgymMwa.open({ appId, channel, startingRoute, initialContext }).then(
+    ({ closedBy }) => console.log(`${title} closed by ${closedBy}`),
+    (error: unknown) =>
+      console.warn(
+        `${title} did not open:`,
+        (error as { code?: string }).code ?? error,
+      ),
+  );
+};
+
 export function MwaHome({ mwas }: MwaHomeProps) {
-  const [openMwa, setOpenMwa] = useState<Mwa | null>(null);
-  const closeMwa = useCallback(() => setOpenMwa(null), []);
-
-  if (openMwa) {
-    return <MwaScreen portal={openMwa.portal} onClose={closeMwa} />;
-  }
-
   return (
     <SafeAreaView style={styles.home}>
       <Text style={styles.title}>EGYM MWA reference</Text>
       <View style={styles.buttons}>
         {mwas.map(mwa => (
           <Button
-            key={mwa.portal.name}
+            key={mwa.appId}
             title={mwa.title}
-            onPress={() => setOpenMwa(mwa)}
+            onPress={() => openMwa(mwa)}
           />
         ))}
       </View>

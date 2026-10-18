@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NativeModules } from 'react-native';
 import { subscribe } from '@ionic/portals-react-native';
+import { EgymMwa } from '@egym/capacitor-mwa-navigation/react-native';
 import { MwaHome } from '../MwaHome';
 import { createMwas } from '../mwas';
 import { BmaLoginForm, type BmaSession } from './BmaLoginForm';
@@ -42,6 +43,7 @@ export function BmaLogin({ config }: BmaLoginProps) {
             return;
           }
           if (error instanceof GalaxyHttpError && error.rejectsSession) {
+            EgymMwa.close();
             setNotice('The Galaxy session has ended. Log in again.');
             setSession(null);
           } else {

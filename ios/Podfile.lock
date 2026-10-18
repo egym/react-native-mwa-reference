@@ -3,13 +3,47 @@ PODS:
     - ReactNativeDependencies
   - Capacitor (8.5.3):
     - CapacitorCordova
+  - CapacitorApp (8.1.0):
+    - Capacitor
+  - CapacitorBrowser (8.0.3):
+    - Capacitor
+  - CapacitorCommunitySqlite (8.1.1):
+    - Capacitor
+    - SQLCipher
+    - ZIPFoundation
   - CapacitorCordova (8.5.3)
+  - CapacitorDevice (8.0.2):
+    - Capacitor
+  - CapacitorHaptics (8.0.2):
+    - Capacitor
+  - CapacitorKeyboard (8.0.6):
+    - Capacitor
   - CapacitorNFCPassWallet (0.4.0):
     - Capacitor (< 9.0, >= 7.0)
   - CapacitorPreferences (8.0.1):
     - Capacitor
+  - CapacitorStatusBar (8.0.2):
+    - Capacitor
   - DoubleConversion (1.1.6):
     - ReactNativeDependencies
+  - EgymCapacitorMwaNavigation (0.2.0):
+    - EgymCapacitorMwaNavigation/Core (= 0.2.0)
+  - EgymCapacitorMwaNavigation/Core (0.2.0):
+    - Capacitor (>= 8.5.3, ~> 8.5)
+    - CapacitorApp
+    - CapacitorBrowser
+    - CapacitorCommunitySqlite
+    - CapacitorDevice
+    - CapacitorHaptics
+    - CapacitorKeyboard
+    - CapacitorNFCPassWallet
+    - CapacitorPreferences
+    - CapacitorStatusBar
+    - IonicLiveUpdates (~> 0.5.7)
+    - IonicPortals (~> 0.13.2)
+  - EgymCapacitorMwaNavigation/ReactNative (0.2.0):
+    - EgymCapacitorMwaNavigation/Core
+    - React-Core
   - fast_float (8.0.0):
     - ReactNativeDependencies
   - FBLazyVector (0.87.1):
@@ -1710,14 +1744,23 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
+  - SQLCipher (4.10.0):
+    - SQLCipher/standard (= 4.10.0)
+  - SQLCipher/common (4.10.0)
+  - SQLCipher/standard (4.10.0):
+    - SQLCipher/common
   - Yoga (0.0.0):
     - React-Core-prebuilt
+  - ZIPFoundation (0.9.20)
 
 DEPENDENCIES:
   - boost (from `build/rndeps-facades/boost`)
-  - "CapacitorNFCPassWallet (from `../node_modules/@egym/capacitor-nfc-pass-wallet`)"
-  - "CapacitorPreferences (from `../node_modules/@capacitor/preferences`)"
+  - "CapacitorCommunitySqlite (from `../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite`)"
+  - CapacitorKeyboard
+  - "CapacitorNFCPassWallet (from `../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet`)"
   - DoubleConversion (from `build/rndeps-facades/DoubleConversion`)
+  - "EgymCapacitorMwaNavigation (from `../node_modules/@egym/capacitor-mwa-navigation`)"
+  - "EgymCapacitorMwaNavigation/ReactNative (from `../node_modules/@egym/capacitor-mwa-navigation`)"
   - fast_float (from `build/rndeps-facades/fast_float`)
   - FBLazyVector (from `build/rncore-facades/FBLazyVector`)
   - fmt (from `build/rndeps-facades/fmt`)
@@ -1803,24 +1846,36 @@ DEPENDENCIES:
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "ReactNativePortals (from `../node_modules/@ionic/portals-react-native`)"
   - SocketRocket (from `build/rndeps-facades/SocketRocket`)
+  - SQLCipher
   - Yoga (from `build/rncore-facades/Yoga`)
 
 SPEC REPOS:
   trunk:
     - Capacitor
+    - CapacitorApp
+    - CapacitorBrowser
     - CapacitorCordova
+    - CapacitorDevice
+    - CapacitorHaptics
+    - CapacitorKeyboard
+    - CapacitorPreferences
+    - CapacitorStatusBar
     - IonicLiveUpdates
     - IonicPortals
+    - SQLCipher
+    - ZIPFoundation
 
 EXTERNAL SOURCES:
   boost:
     :path: build/rndeps-facades/boost
+  CapacitorCommunitySqlite:
+    :path: "../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite"
   CapacitorNFCPassWallet:
-    :path: "../node_modules/@egym/capacitor-nfc-pass-wallet"
-  CapacitorPreferences:
-    :path: "../node_modules/@capacitor/preferences"
+    :path: "../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet"
   DoubleConversion:
     :path: build/rndeps-facades/DoubleConversion
+  EgymCapacitorMwaNavigation:
+    :path: "../node_modules/@egym/capacitor-mwa-navigation"
   fast_float:
     :path: build/rndeps-facades/fast_float
   FBLazyVector:
@@ -1996,10 +2051,18 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 8502bfdc46e2804408af2e163049ece181009af4
   Capacitor: f4b45457b634d0ca52419e56b4797acf9f9c32ed
+  CapacitorApp: a4d8d936cc4390859a3766f141048abe55d4076f
+  CapacitorBrowser: f42210052d25867e64cda9ee28906ca830835ebe
+  CapacitorCommunitySqlite: 785553c54e52da62d058238d4571db5692c022c4
   CapacitorCordova: 842fecda28471510d6b16ba784e2d3f98aa164f5
+  CapacitorDevice: b50f119138a2b69a1e9213f4468d1e75e4239cca
+  CapacitorHaptics: 4e1e84c2b74fb5918e403fb8f0e73a07d05937df
+  CapacitorKeyboard: d96c5f659eb0a33dfc734640252836fa9575e8ad
   CapacitorNFCPassWallet: 0cf854995e90b5256cd0607a0ba8eca21042e3be
-  CapacitorPreferences: cca2021f386efb75947c850334447d9ff22b14f1
+  CapacitorPreferences: 0fa33b3affebf12d96358b491ed7c2b39bec3270
+  CapacitorStatusBar: b692a4cf12b3fe3a7b7ece86da62106065d78fdc
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
+  EgymCapacitorMwaNavigation: 91926e758e181ff865388bf9b601868934b8955f
   fast_float: 7c925d1cebf8328d4018d061f49377e9f887e3b4
   FBLazyVector: e08a27053b503eeb756ea4bd75d570d2f2522a1b
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93
@@ -2086,8 +2149,10 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   ReactNativePortals: 5adba870a4b09bc8a6b5eb5244d349ceb5b8b497
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
+  SQLCipher: eb79c64049cb002b4e9fcb30edb7979bf4706dfc
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
+  ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 2a03f5cbbeb8d73fa2854008935045104fabd824
+PODFILE CHECKSUM: f89769e2debdf0dd367c01bdc39a98f7ddfdd628
 
 COCOAPODS: 1.15.2
