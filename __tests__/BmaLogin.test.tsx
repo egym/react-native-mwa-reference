@@ -163,7 +163,7 @@ test('the login calls Galaxy and then asks for the MWA token', async () => {
     body: 'username=member%40example.com&password=p%40ss%26word',
   });
   expect(fetchMock).toHaveBeenNthCalledWith(2, tokenUrl, tokenRequest);
-  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA', 'Reference MWA']);
 });
 
 test.each([

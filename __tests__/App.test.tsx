@@ -60,7 +60,7 @@ afterEach(() => {
 test('the home screen shows one button per MWA', async () => {
   const root = await renderApp();
 
-  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA', 'Reference MWA']);
   expect(openMock).not.toHaveBeenCalled();
 });
 
@@ -88,13 +88,30 @@ test.each([
   },
 );
 
+test('Reference MWA opens the web reference MWA through the package on the develop channel', async () => {
+  const root = await renderApp();
+
+  await pressButton(root, 'Reference MWA');
+
+  expect(openMock).toHaveBeenCalledTimes(1);
+  expect(openMock).toHaveBeenCalledWith({
+    appId: '9d727e58',
+    channel: 'develop',
+    startingRoute: '/home',
+    initialContext: expect.objectContaining({
+      email: 'email@example.com',
+      language: 'de-DE',
+    }),
+  });
+});
+
 test('the home screen stays while the package shows the MWA', async () => {
   openMock.mockReturnValue(new Promise(() => {}));
   const root = await renderApp();
 
   await pressButton(root, 'Workouts MWA');
 
-  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA', 'Reference MWA']);
 });
 
 test('the close reason is logged', async () => {
@@ -116,5 +133,5 @@ test('an open that the package refuses is logged with its code', async () => {
   await pressButton(root, 'Workouts MWA');
 
   expect(console.warn).toHaveBeenCalledWith('Workouts MWA did not open:', 'BUSY');
-  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA', 'Reference MWA']);
 });

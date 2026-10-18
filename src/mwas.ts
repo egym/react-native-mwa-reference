@@ -39,11 +39,21 @@ const createMwa = (
   initialContext: member?.initialContext ?? sampleContext,
 });
 
-// Bioage always runs with the sample context.
+// The web reference MWA (egym/mwa-reference) demos the EGYM plugins, the MWA navigation plugin among them.
+const referenceMwa: Mwa = {
+  title: 'Reference MWA',
+  appId: '9d727e58',
+  channel: 'develop',
+  startingRoute: '/home',
+  initialContext: sampleContext,
+};
+
+// Bioage and the reference MWA always run with the sample context.
 export const createMwas = (member?: LoggedInMember): Mwa[] => [
   createMwa('Workouts MWA', 'workouts', '851e0894', member),
   createMwa('Bioage MWA', 'bioage', '068a3720'),
   createMwa('NFC MWA', 'nfc', 'dcbe378a', member),
+  referenceMwa,
 ];
 
 export const mwas = createMwas();

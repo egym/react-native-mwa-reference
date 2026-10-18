@@ -6,8 +6,9 @@ This branch is a proof of concept: the app takes Portals, Capacitor and the Capa
 
 ## What the app does
 
-- The home screen has three buttons: "Workouts MWA", "Bioage MWA" and "NFC MWA".
-- Each button calls `EgymMwa.open` from `@egym/capacitor-mwa-navigation/react-native` for one Appflow app: Workouts `851e0894`, Bioage `068a3720` or NFC `dcbe378a`, all three on the channel `reference`, with a sample initial context. See `src/mwas.ts` and `src/MwaHome.tsx`.
+- The home screen has four buttons: "Workouts MWA", "Bioage MWA", "NFC MWA" and "Reference MWA".
+- Each button calls `EgymMwa.open` from `@egym/capacitor-mwa-navigation/react-native` for one Appflow app: Workouts `851e0894`, Bioage `068a3720` or NFC `dcbe378a` on the channel `reference`, or the web reference MWA `9d727e58` on the channel `develop`, with a sample initial context. See `src/mwas.ts` and `src/MwaHome.tsx`.
+- The web reference MWA demos the EGYM plugins. Its page "Test MWA Navigation" opens NFC through the `EgymMwaNavigation` plugin with one tap (egym/mwa-reference#45; until that is deployed to `develop`, the page is not there).
 - The package shows the MWA in its own native full-screen screen, with its `EgymMwaNavigation` plugin and the nine Capacitor plugins that EGYM MWAs need. It closes the screen when the MWA sends `dismiss`, and on Android back. The app writes no code for this.
 - With a local `bma-login.json`, the app first logs in as a BMA user, for EGYM testing. See "Log in as a BMA user" below.
 
