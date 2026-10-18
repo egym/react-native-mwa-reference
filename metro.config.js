@@ -15,6 +15,10 @@ const config = {
       path.join(__dirname, 'node_modules/@egym/capacitor-mwa-navigation'),
     ),
   ],
+  // Metro resolves the linked package's imports, such as react-native, from its real folder, which has none of them.
+  resolver: {
+    nodeModulesPaths: [path.join(__dirname, 'node_modules')],
+  },
 };
 
 module.exports = mergeConfig(getDefaultConfig(__dirname), config);

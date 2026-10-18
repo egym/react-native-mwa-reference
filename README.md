@@ -101,13 +101,13 @@ What this branch changes in the host:
 - `src/MwaHome.tsx` calls `EgymMwa.open` from `@egym/capacitor-mwa-navigation/react-native`, a module that imports nothing from `@capacitor/core`. The app shows no `PortalView` of its own.
 - iOS: React Native autolinking adds the package's pod with its default subspec `Core`. The `Podfile` adds the subspec `ReactNative`, which holds the native module behind `EgymMwa.open`, and SQLite and the NFC wallet plugin from the package's `node_modules`, because CocoaPods trunk has neither. It gives SQLCipher and CapacitorKeyboard module maps, which the package's Swift pods need when pods build as static libraries, and raises the deployment target of the SQLCipher and ZIPFoundation pods from 12.0 to 15.0, which Xcode 27 needs.
 - Android: `settings.gradle` includes the package's Gradle module, and SQLite and the NFC wallet plugin from the package's `node_modules`. `app/build.gradle` depends on `:egym-capacitor-mwa-navigation`. React Native autolinking finds the package's native module through its `react-native.config.cjs` and adds `EgymMwaReactNativePackage` to the app's package list.
-- `metro.config.js` watches the package folder, because npm links a local folder into `node_modules` and Metro follows a link only into watched folders.
+- `metro.config.js` watches the package folder, because npm links a local folder into `node_modules` and Metro follows a link only into watched folders. It also adds the app's `node_modules` to `resolver.nodeModulesPaths`, because Metro resolves the linked package's own imports, such as `react-native`, from the package's real folder.
 
 Host lines that stay with the package:
 
 - iOS: the `ReactNative` subspec line, the two `:path` pods, the two `:modular_headers` pods and the deployment target fix in the `Podfile`, and the existing dynamic framework setting for Capacitor.
 - Android: the `include` and `projectDir` lines, because only the app's `settings.gradle` can add Gradle projects; `@capacitor/android` and the `:capacitor-android` project, because the SQLite module depends on it; the exclude of the Capacitor core from Maven, because the Portals that the SDK brings from Maven would add a second core.
-- `watchFolders` in `metro.config.js`, only while the package comes from a local folder.
+- `watchFolders` and `resolver.nodeModulesPaths` in `metro.config.js`, only while the package comes from a local folder.
 
 The NFC MWA calls the wallet plugin as `CapacitorNFCPassWallet`: on its home screen it asks `isWalletAvailable` and shows "Add to Google Wallet" or "Add to Apple Wallet" only when the answer is true. When that button shows, the plugin works in this app.
 
@@ -134,4 +134,4 @@ NFC opens full screen. Its back arrow resolves the call with `closedBy: 'dismiss
 ## Notes
 
 - The NFC wallet plugin 0.4.0 that the package brings uses `proguard-android.txt`, which the Android Gradle plugin 9 rejects. `android/gradle.properties` turns that check off with `android.r8.proguardAndroidTxt.disallowed=false` until the plugin moves to `proguard-android-optimize.txt`.
-- Checks: `npm run lint`, `npx tsc --noEmit` and `npm test`.
+- Checks: `npm run lint`, `npx tsc --noEmit` and `npm test`. Jest does not bundle the app, so also run `npx react-native bundle --platform android --dev true --entry-file index.js --bundle-output /tmp/app.bundle.js` after a change to the package or to `metro.config.js`.
