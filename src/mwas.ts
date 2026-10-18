@@ -1,9 +1,10 @@
-import type { Portal } from '@ionic/portals-react-native';
-import { egymMwaPortalPlugins } from '@egym/capacitor-mwa-navigation/react-native';
-
+/** One MWA button: what the app passes to `EgymMwa.open`. */
 export type Mwa = {
   title: string;
-  portal: Portal;
+  appId: string;
+  channel: string;
+  startingRoute: string;
+  initialContext: Record<string, unknown>;
 };
 
 const sampleContext = {
@@ -25,47 +26,24 @@ export type LoggedInMember = {
   channel: string;
 };
 
-const createPortal = (
+const createMwa = (
+  title: string,
   app: string,
   appId: string,
   member?: LoggedInMember,
-): Portal => ({
-  name: `egym-${app}`,
-  startDir: `egym-${app}`,
-  plugins: egymMwaPortalPlugins,
-  initialContext: {
-    startingRoute: `/${app}/home`,
-    ...(member?.initialContext ?? sampleContext),
-  },
-  liveUpdate: {
-    appId,
-    channel: member?.channel ?? 'reference',
-    syncOnAdd: false,
-  },
-});
-
-// Debug builds only: a bundled page that calls EgymMwaNavigation.open with the Workouts context (README).
-const createPluginTestPortal = (workouts: Portal): Portal => ({
-  name: 'plugin-test',
-  startDir: 'plugin-test',
-  plugins: egymMwaPortalPlugins,
-  initialContext: {
-    ...workouts.initialContext,
-    nfcChannel: workouts.liveUpdate?.channel,
-  },
+): Mwa => ({
+  title,
+  appId,
+  channel: member?.channel ?? 'reference',
+  startingRoute: `/${app}/home`,
+  initialContext: member?.initialContext ?? sampleContext,
 });
 
 // Bioage always runs with the sample context.
-export const createMwas = (member?: LoggedInMember): Mwa[] => {
-  const workouts = createPortal('workouts', '851e0894', member);
-  return [
-    { title: 'Workouts MWA', portal: workouts },
-    { title: 'Bioage MWA', portal: createPortal('bioage', '068a3720') },
-    { title: 'NFC MWA', portal: createPortal('nfc', 'dcbe378a', member) },
-    ...(__DEV__
-      ? [{ title: 'Plugin test', portal: createPluginTestPortal(workouts) }]
-      : []),
-  ];
-};
+export const createMwas = (member?: LoggedInMember): Mwa[] => [
+  createMwa('Workouts MWA', 'workouts', '851e0894', member),
+  createMwa('Bioage MWA', 'bioage', '068a3720'),
+  createMwa('NFC MWA', 'nfc', 'dcbe378a', member),
+];
 
 export const mwas = createMwas();

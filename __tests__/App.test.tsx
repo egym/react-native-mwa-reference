@@ -1,14 +1,7 @@
 import React from 'react';
 import { Button } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
-import {
-  PortalView,
-  subscribe,
-  syncOne,
-  type Message,
-  type SyncResult,
-} from '@ionic/portals-react-native';
-import { egymMwaPortalPlugins } from '@egym/capacitor-mwa-navigation/react-native';
+import { EgymMwa } from '@egym/capacitor-mwa-navigation/react-native';
 import App from '../App';
 
 jest.mock(
@@ -16,10 +9,13 @@ jest.mock(
   () => jest.requireActual('react-native-safe-area-context/jest/mock').default,
 );
 
+jest.mock('@egym/capacitor-mwa-navigation/react-native', () => ({
+  EgymMwa: { open: jest.fn() },
+}));
+
+// The BMA login imports the SDK's subscribe, which needs a native module.
 jest.mock('@ionic/portals-react-native', () => ({
-  PortalView: 'PortalView',
   subscribe: jest.fn(),
-  syncOne: jest.fn(),
 }));
 
 // Without bma-login.json the app runs as before, whatever file a developer has locally.
@@ -27,9 +23,7 @@ jest.mock('../src/bmaLogin/config', () => ({
   loadBmaLoginConfig: () => null,
 }));
 
-const subscribeMock = jest.mocked(subscribe);
-const syncOneMock = jest.mocked(syncOne);
-const removeSubscription = jest.fn();
+const openMock = jest.mocked(EgymMwa.open);
 
 const renderApp = async () => {
   let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
@@ -42,51 +36,32 @@ const renderApp = async () => {
 const buttonTitles = (root: ReactTestRenderer.ReactTestInstance) =>
   root.findAllByType(Button).map(button => button.props.title);
 
-const openMwa = async (
+const pressButton = async (
   root: ReactTestRenderer.ReactTestInstance,
   title: string,
 ) => {
   const button = root
     .findAllByType(Button)
     .find(candidate => candidate.props.title === title);
-  await ReactTestRenderer.act(() => button!.props.onPress());
-};
-
-const syncResult = (activeApplicationPathChanged: boolean) =>
-  ({ activeApplicationPathChanged } as SyncResult);
-
-// The screen syncs after the first layout of the Portal view.
-const layOutPortal = async (root: ReactTestRenderer.ReactTestInstance) => {
-  await ReactTestRenderer.act(async () => {
-    root.findByType(PortalView).props.onLayout();
-  });
-};
-
-const publishToSubscription = async (data: unknown) => {
-  const [topic, onMessage] = subscribeMock.mock.calls[0];
-  expect(topic).toBe('subscription');
-  const message: Message = { subscriptionRef: 1, topic, data };
-  await ReactTestRenderer.act(() => onMessage(message));
+  await ReactTestRenderer.act(async () => button!.props.onPress());
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  subscribeMock.mockReturnValue({
-    remove: removeSubscription,
-  } as unknown as ReturnType<typeof subscribe>);
-  syncOneMock.mockResolvedValue(syncResult(true));
+  openMock.mockResolvedValue({ closedBy: 'dismiss' });
+  jest.spyOn(console, 'log').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
-test('the home screen shows one button per MWA and the debug plugin test', async () => {
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
+test('the home screen shows one button per MWA', async () => {
   const root = await renderApp();
 
-  expect(buttonTitles(root)).toEqual([
-    'Workouts MWA',
-    'Bioage MWA',
-    'NFC MWA',
-    'Plugin test',
-  ]);
-  expect(root.findAllByType(PortalView)).toHaveLength(0);
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+  expect(openMock).not.toHaveBeenCalled();
 });
 
 test.each([
@@ -94,238 +69,52 @@ test.each([
   ['Bioage MWA', 'bioage', '068a3720'],
   ['NFC MWA', 'nfc', 'dcbe378a'],
 ])(
-  '%s opens full screen from the reference channel',
+  '%s opens through the package on the reference channel',
   async (title, app, appId) => {
     const root = await renderApp();
 
-    await openMwa(root, title);
+    await pressButton(root, title);
 
-    const { portal } = root.findByType(PortalView).props;
-    expect(portal.liveUpdate).toEqual({
+    expect(openMock).toHaveBeenCalledTimes(1);
+    expect(openMock).toHaveBeenCalledWith({
       appId,
       channel: 'reference',
-      syncOnAdd: false,
+      startingRoute: `/${app}/home`,
+      initialContext: expect.objectContaining({
+        email: 'email@example.com',
+        language: 'de-DE',
+      }),
     });
-    expect(portal.initialContext.startingRoute).toBe(`/${app}/home`);
-    expect(portal.plugins).toBe(egymMwaPortalPlugins);
-    expect(buttonTitles(root)).toEqual(['Close']);
-
-    await layOutPortal(root);
-
-    expect(syncOneMock).toHaveBeenCalledWith(appId);
-    expect(buttonTitles(root)).toEqual([]);
   },
 );
 
-test('the loading view stays until the live update sync ends', async () => {
-  let finishSync: (result: SyncResult) => void = () => {};
-  syncOneMock.mockReturnValue(
-    new Promise(resolve => {
-      finishSync = resolve;
+test('the home screen stays while the package shows the MWA', async () => {
+  openMock.mockReturnValue(new Promise(() => {}));
+  const root = await renderApp();
+
+  await pressButton(root, 'Workouts MWA');
+
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
+});
+
+test('the close reason is logged', async () => {
+  const root = await renderApp();
+
+  await pressButton(root, 'NFC MWA');
+
+  expect(console.log).toHaveBeenCalledWith('NFC MWA closed by dismiss');
+});
+
+test('an open that the package refuses is logged with its code', async () => {
+  openMock.mockRejectedValue(
+    Object.assign(new Error('Another MWA opened by the app is loading or shown'), {
+      code: 'BUSY',
     }),
   );
   const root = await renderApp();
-  await openMwa(root, 'Workouts MWA');
-  await layOutPortal(root);
-  const firstPortalView = root.findByType(PortalView);
 
-  expect(buttonTitles(root)).toEqual(['Close']);
-  const hiddenFromScreenReaders = root.findByProps({
-    importantForAccessibility: 'no-hide-descendants',
-  });
-  expect(hiddenFromScreenReaders.props.accessibilityElementsHidden).toBe(true);
-  expect(hiddenFromScreenReaders.findByType(PortalView)).toBe(firstPortalView);
+  await pressButton(root, 'Workouts MWA');
 
-  await ReactTestRenderer.act(async () => finishSync(syncResult(true)));
-
-  expect(buttonTitles(root)).toEqual([]);
-  expect(root.findByType(PortalView)).not.toBe(firstPortalView);
-  expect(syncOneMock).toHaveBeenCalledTimes(1);
-  expect(
-    root.findAllByProps({ importantForAccessibility: 'no-hide-descendants' }),
-  ).toHaveLength(0);
-});
-
-test('without a new build the Portal view stays as it is', async () => {
-  syncOneMock.mockResolvedValue(syncResult(false));
-  const root = await renderApp();
-  await openMwa(root, 'Workouts MWA');
-  const firstPortalView = root.findByType(PortalView);
-  const firstPortalProp = firstPortalView.props.portal;
-
-  await layOutPortal(root);
-
-  expect(buttonTitles(root)).toEqual([]);
-  expect(root.findByType(PortalView)).toBe(firstPortalView);
-  // A new portal object would make the iOS SDK build the native Portal again.
-  expect(root.findByType(PortalView).props.portal).toBe(firstPortalProp);
-});
-
-test('a sync that keeps failing shows the build on the device', async () => {
-  jest.useFakeTimers();
-  try {
-    syncOneMock.mockRejectedValue(new Error('offline'));
-    const root = await renderApp();
-    await openMwa(root, 'NFC MWA');
-    await layOutPortal(root);
-
-    expect(buttonTitles(root)).toEqual(['Close']);
-
-    await ReactTestRenderer.act(() => jest.advanceTimersByTimeAsync(3_200));
-
-    expect(buttonTitles(root)).toEqual([]);
-    expect(root.findAllByType(PortalView)).toHaveLength(1);
-  } finally {
-    jest.useRealTimers();
-  }
-});
-
-test('the sync is retried until the native view registered the live update', async () => {
-  jest.useFakeTimers();
-  try {
-    syncOneMock
-      .mockRejectedValueOnce(new Error('not registered'))
-      .mockResolvedValueOnce(syncResult(true));
-    const root = await renderApp();
-    await openMwa(root, 'Workouts MWA');
-    const firstPortalView = root.findByType(PortalView);
-    await layOutPortal(root);
-
-    await ReactTestRenderer.act(() => jest.advanceTimersByTimeAsync(200));
-
-    expect(syncOneMock).toHaveBeenCalledTimes(2);
-    expect(buttonTitles(root)).toEqual([]);
-    expect(root.findByType(PortalView)).not.toBe(firstPortalView);
-  } finally {
-    jest.useRealTimers();
-  }
-});
-
-test('Close on the loading view closes the MWA', async () => {
-  syncOneMock.mockReturnValue(new Promise(() => {}));
-  const root = await renderApp();
-  const homeTitles = buttonTitles(root);
-  await openMwa(root, 'Bioage MWA');
-
-  await openMwa(root, 'Close');
-
-  expect(root.findAllByType(PortalView)).toHaveLength(0);
-  expect(buttonTitles(root)).toEqual(homeTitles);
-});
-
-test('an MWA reopened during a download waits for that download', async () => {
-  let finishSync: (result: SyncResult) => void = () => {};
-  syncOneMock.mockReturnValue(
-    new Promise(resolve => {
-      finishSync = resolve;
-    }),
-  );
-  const root = await renderApp();
-  await openMwa(root, 'Workouts MWA');
-  await layOutPortal(root);
-  await openMwa(root, 'Close');
-  await openMwa(root, 'Workouts MWA');
-  const reopenedPortalView = root.findByType(PortalView);
-  await layOutPortal(root);
-
-  expect(buttonTitles(root)).toEqual(['Close']);
-
-  await ReactTestRenderer.act(async () => finishSync(syncResult(true)));
-
-  expect(syncOneMock).toHaveBeenCalledTimes(1);
-  expect(buttonTitles(root)).toEqual([]);
-  expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
-});
-
-test('an MWA reopened during a download shows the build that the download activated', async () => {
-  let finishFirstSync: (result: SyncResult) => void = () => {};
-  syncOneMock
-    .mockReturnValueOnce(
-      new Promise(resolve => {
-        finishFirstSync = resolve;
-      }),
-    )
-    .mockResolvedValueOnce(syncResult(false));
-  const root = await renderApp();
-  await openMwa(root, 'Workouts MWA');
-  await layOutPortal(root);
-  await openMwa(root, 'Close');
-  await openMwa(root, 'Workouts MWA');
-  const reopenedPortalView = root.findByType(PortalView);
-
-  await ReactTestRenderer.act(async () => finishFirstSync(syncResult(true)));
-  await layOutPortal(root);
-
-  expect(syncOneMock).toHaveBeenCalledTimes(2);
-  expect(buttonTitles(root)).toEqual([]);
-  expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
-});
-
-test('a download that ends after the time limit still counts for a reopened MWA', async () => {
-  jest.useFakeTimers();
-  try {
-    let finishFirstSync: (result: SyncResult) => void = () => {};
-    syncOneMock
-      .mockReturnValueOnce(
-        new Promise(resolve => {
-          finishFirstSync = resolve;
-        }),
-      )
-      .mockResolvedValueOnce(syncResult(false));
-    const root = await renderApp();
-    await openMwa(root, 'Workouts MWA');
-    await layOutPortal(root);
-    await ReactTestRenderer.act(() => jest.advanceTimersByTimeAsync(30_000));
-
-    expect(buttonTitles(root)).toEqual([]);
-
-    await publishToSubscription({ type: 'dismiss' });
-    await openMwa(root, 'Workouts MWA');
-    const reopenedPortalView = root.findByType(PortalView);
-    await ReactTestRenderer.act(async () => finishFirstSync(syncResult(true)));
-    await layOutPortal(root);
-
-    expect(syncOneMock).toHaveBeenCalledTimes(2);
-    expect(buttonTitles(root)).toEqual([]);
-    expect(root.findByType(PortalView)).not.toBe(reopenedPortalView);
-  } finally {
-    jest.useRealTimers();
-  }
-});
-
-test('dismiss closes the MWA and ends the subscription', async () => {
-  const root = await renderApp();
-  await openMwa(root, 'NFC MWA');
-
-  await publishToSubscription({ type: 'dismiss' });
-
-  expect(root.findAllByType(PortalView)).toHaveLength(0);
-  expect(buttonTitles(root)).toHaveLength(4);
-  expect(removeSubscription).toHaveBeenCalledTimes(1);
-});
-
-test('the plugin test page gets the Workouts context and the NFC channel', async () => {
-  const root = await renderApp();
-
-  await openMwa(root, 'Plugin test');
-
-  const { portal } = root.findByType(PortalView).props;
-  expect(portal.startDir).toBe('plugin-test');
-  expect(portal.plugins).toBe(egymMwaPortalPlugins);
-  expect(portal.liveUpdate).toBeUndefined();
-  expect(portal.initialContext).toMatchObject({
-    startingRoute: '/workouts/home',
-    email: 'email@example.com',
-    nfcChannel: 'reference',
-  });
-});
-
-test('other messages keep the MWA open', async () => {
-  const root = await renderApp();
-  await openMwa(root, 'Workouts MWA');
-
-  await publishToSubscription({ type: 'authToken' });
-
-  expect(root.findAllByType(PortalView)).toHaveLength(1);
-  expect(removeSubscription).not.toHaveBeenCalled();
+  expect(console.warn).toHaveBeenCalledWith('Workouts MWA did not open:', 'BUSY');
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
 });

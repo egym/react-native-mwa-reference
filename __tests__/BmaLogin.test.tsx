@@ -1,11 +1,8 @@
 import React from 'react';
 import { Button, NativeModules, Text, TextInput } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
-import {
-  PortalView,
-  subscribe,
-  type Message,
-} from '@ionic/portals-react-native';
+import { subscribe, type Message } from '@ionic/portals-react-native';
+import { EgymMwa } from '@egym/capacitor-mwa-navigation/react-native';
 import App from '../App';
 
 jest.mock(
@@ -14,9 +11,11 @@ jest.mock(
 );
 
 jest.mock('@ionic/portals-react-native', () => ({
-  PortalView: 'PortalView',
   subscribe: jest.fn(),
-  syncOne: jest.fn(),
+}));
+
+jest.mock('@egym/capacitor-mwa-navigation/react-native', () => ({
+  EgymMwa: { open: jest.fn() },
 }));
 
 jest.mock('../src/bmaLogin/config', () => ({
@@ -30,6 +29,7 @@ jest.mock('../src/bmaLogin/config', () => ({
 type Listener = (message: Message) => void;
 
 const subscribeMock = jest.mocked(subscribe);
+const openMock = jest.mocked(EgymMwa.open);
 const fetchMock = jest.fn();
 const publishString = jest.fn();
 let listeners: Listener[] = [];
@@ -129,6 +129,7 @@ beforeEach(() => {
   });
   globalThis.fetch = fetchMock;
   NativeModules.PortalsStringPublisher = { publish: publishString };
+  openMock.mockReturnValue(new Promise(() => {}));
 });
 
 test('the login shows instead of the MWA buttons', async () => {
@@ -161,12 +162,7 @@ test('the login calls Galaxy and then asks for the MWA token', async () => {
     body: 'username=member%40example.com&password=p%40ss%26word',
   });
   expect(fetchMock).toHaveBeenNthCalledWith(2, tokenUrl, tokenRequest);
-  expect(buttonTitles(root)).toEqual([
-    'Workouts MWA',
-    'Bioage MWA',
-    'NFC MWA',
-    'Plugin test',
-  ]);
+  expect(buttonTitles(root)).toEqual(['Workouts MWA', 'Bioage MWA', 'NFC MWA']);
 });
 
 test.each([
@@ -183,22 +179,20 @@ test.each([
 
     await pressButton(root, title);
 
-    const { portal } = root.findByType(PortalView).props;
-    expect(portal.initialContext).toEqual({
-      startingRoute: `/${app}/home`,
-      clientId: 'egym',
-      authToken: 'token-1',
-      url: 'https://mwa-api.test',
-      gymLocation: 'gym-1',
-      email: 'member@example.com',
-      language: 'en-US',
-      preferences: {},
-      linking: { status: 'linked', egymEmail: 'member@example.com' },
-    });
-    expect(portal.liveUpdate).toEqual({
+    expect(openMock).toHaveBeenCalledWith({
       appId,
       channel: 'test-channel',
-      syncOnAdd: false,
+      startingRoute: `/${app}/home`,
+      initialContext: {
+        clientId: 'egym',
+        authToken: 'token-1',
+        url: 'https://mwa-api.test',
+        gymLocation: 'gym-1',
+        email: 'member@example.com',
+        language: 'en-US',
+        preferences: {},
+        linking: { status: 'linked', egymEmail: 'member@example.com' },
+      },
     });
   },
 );
@@ -212,10 +206,10 @@ test('Bioage keeps the sample context on the reference channel', async () => {
 
   await pressButton(root, 'Bioage MWA');
 
-  const { portal } = root.findByType(PortalView).props;
-  expect(portal.initialContext.email).toBe('email@example.com');
-  expect(portal.initialContext.authToken).toBeUndefined();
-  expect(portal.liveUpdate.channel).toBe('reference');
+  const [options] = openMock.mock.calls[0];
+  expect(options.initialContext.email).toBe('email@example.com');
+  expect(options.initialContext.authToken).toBeUndefined();
+  expect(options.channel).toBe('reference');
 });
 
 test('a failed login shows the reason and keeps the form', async () => {
@@ -269,13 +263,12 @@ test('a token renewal that Galaxy rejects goes back to the login', async () => {
   await publishToSubscription({ type: 'authToken' });
 
   expect(publishString).not.toHaveBeenCalled();
-  expect(root.findAllByType(PortalView)).toHaveLength(0);
   expect(buttonTitles(root)).toEqual(['Log in']);
   expect(texts(root)).toContain('The Galaxy session has ended. Log in again.');
   expect(listeners).toHaveLength(0);
 });
 
-test('a renewed token keeps the open MWA and reaches the next open', async () => {
+test('a renewed token reaches the next open', async () => {
   fetchMock
     .mockResolvedValueOnce(loginResponse)
     .mockResolvedValueOnce(response(200, { accessToken: 'token-1' }))
@@ -283,14 +276,10 @@ test('a renewed token keeps the open MWA and reaches the next open', async () =>
   const root = await renderApp();
   await logIn(root);
   await pressButton(root, 'Workouts MWA');
-  const openPortal = root.findByType(PortalView).props.portal;
 
   await publishToSubscription({ type: 'authToken' });
-
-  expect(root.findByType(PortalView).props.portal).toBe(openPortal);
-  await publishToSubscription({ type: 'dismiss' });
   await pressButton(root, 'NFC MWA');
-  expect(
-    root.findByType(PortalView).props.portal.initialContext.authToken,
-  ).toBe('token-2');
+
+  expect(openMock.mock.calls[0][0].initialContext.authToken).toBe('token-1');
+  expect(openMock.mock.calls[1][0].initialContext.authToken).toBe('token-2');
 });

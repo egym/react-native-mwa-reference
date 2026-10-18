@@ -94,12 +94,6 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
-    // The "Plugin test" page of debug builds (README).
-    sourceSets {
-        debug {
-            assets.srcDir('../../debug-assets')
-        }
-    }
 }
 
 // Capacitor core comes from node_modules; the Portals that @ionic/portals-react-native brings from Maven must not add a second copy.
@@ -111,7 +105,7 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    // Capacitor, Portals (also for PortalInsets), Live Updates and the Capacitor plugins of the EGYM MWAs.
+    // Capacitor, Portals, Live Updates and the Capacitor plugins of the EGYM MWAs, and the package's open call.
     implementation project(':egym-capacitor-mwa-navigation')
 
     if (hermesEnabled.toBoolean()) {

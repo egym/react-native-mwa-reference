@@ -26,7 +26,9 @@ PODS:
     - Capacitor
   - DoubleConversion (1.1.6):
     - ReactNativeDependencies
-  - EgymCapacitorMwaNavigation (0.1.0):
+  - EgymCapacitorMwaNavigation (0.2.0):
+    - EgymCapacitorMwaNavigation/Core (= 0.2.0)
+  - EgymCapacitorMwaNavigation/Core (0.2.0):
     - Capacitor (>= 8.5.3, ~> 8.5)
     - CapacitorApp
     - CapacitorBrowser
@@ -39,6 +41,9 @@ PODS:
     - CapacitorStatusBar
     - IonicLiveUpdates (~> 0.5.7)
     - IonicPortals (~> 0.13.2)
+  - EgymCapacitorMwaNavigation/ReactNative (0.2.0):
+    - EgymCapacitorMwaNavigation/Core
+    - React-Core
   - fast_float (8.0.0):
     - ReactNativeDependencies
   - FBLazyVector (0.87.1):
@@ -1755,6 +1760,7 @@ DEPENDENCIES:
   - "CapacitorNFCPassWallet (from `../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet`)"
   - DoubleConversion (from `build/rndeps-facades/DoubleConversion`)
   - "EgymCapacitorMwaNavigation (from `../node_modules/@egym/capacitor-mwa-navigation`)"
+  - "EgymCapacitorMwaNavigation/ReactNative (from `../node_modules/@egym/capacitor-mwa-navigation`)"
   - fast_float (from `build/rndeps-facades/fast_float`)
   - FBLazyVector (from `build/rncore-facades/FBLazyVector`)
   - fmt (from `build/rndeps-facades/fmt`)
@@ -2056,7 +2062,7 @@ SPEC CHECKSUMS:
   CapacitorPreferences: 0fa33b3affebf12d96358b491ed7c2b39bec3270
   CapacitorStatusBar: b692a4cf12b3fe3a7b7ece86da62106065d78fdc
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
-  EgymCapacitorMwaNavigation: 8abf14eb1b4202d8a4708893567e62b969a313ba
+  EgymCapacitorMwaNavigation: 91926e758e181ff865388bf9b601868934b8955f
   fast_float: 7c925d1cebf8328d4018d061f49377e9f887e3b4
   FBLazyVector: e08a27053b503eeb756ea4bd75d570d2f2522a1b
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93
@@ -2147,6 +2153,6 @@ SPEC CHECKSUMS:
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: 97d750da18ed35cce062eb19d22048d9fd077372
+PODFILE CHECKSUM: f89769e2debdf0dd367c01bdc39a98f7ddfdd628
 
 COCOAPODS: 1.15.2
