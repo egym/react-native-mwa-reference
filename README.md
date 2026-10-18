@@ -109,6 +109,8 @@ Host lines that stay with the package:
 - Android: the `include` and `projectDir` lines, because only the app's `settings.gradle` can add Gradle projects; `@capacitor/android` and the `:capacitor-android` project, because the SQLite module depends on it; the exclude of the Capacitor core from Maven, because the Portals that the SDK brings from Maven would add a second core.
 - `watchFolders` in `metro.config.js`, only while the package comes from a local folder.
 
+The NFC MWA calls the wallet plugin as `CapacitorNFCPassWallet`: on its home screen it asks `isWalletAvailable` and shows "Add to Google Wallet" or "Add to Apple Wallet" only when the answer is true. When that button shows, the plugin works in this app.
+
 The Workouts and NFC builds on the channel `reference` predate the MWAs' CSS safe area fallback and pad a fixed 40px, so with the package they show 40px more at the top and 20px more at the bottom. Newer builds pad once.
 
 ## Try the navigation plugin without a login
