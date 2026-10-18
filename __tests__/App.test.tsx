@@ -10,7 +10,7 @@ jest.mock(
 );
 
 jest.mock('@egym/capacitor-mwa-navigation/react-native', () => ({
-  EgymMwa: { open: jest.fn() },
+  EgymMwa: { open: jest.fn(), close: jest.fn().mockResolvedValue(false) },
 }));
 
 // The BMA login imports the SDK's subscribe, which needs a native module.

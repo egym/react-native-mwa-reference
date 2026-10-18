@@ -15,7 +15,7 @@ jest.mock('@ionic/portals-react-native', () => ({
 }));
 
 jest.mock('@egym/capacitor-mwa-navigation/react-native', () => ({
-  EgymMwa: { open: jest.fn() },
+  EgymMwa: { open: jest.fn(), close: jest.fn().mockResolvedValue(false) },
 }));
 
 jest.mock('../src/bmaLogin/config', () => ({
@@ -30,6 +30,7 @@ type Listener = (message: Message) => void;
 
 const subscribeMock = jest.mocked(subscribe);
 const openMock = jest.mocked(EgymMwa.open);
+const closeMock = jest.mocked(EgymMwa.close);
 const fetchMock = jest.fn();
 const publishString = jest.fn();
 let listeners: Listener[] = [];
@@ -263,6 +264,7 @@ test('a token renewal that Galaxy rejects goes back to the login', async () => {
   await publishToSubscription({ type: 'authToken' });
 
   expect(publishString).not.toHaveBeenCalled();
+  expect(closeMock).toHaveBeenCalledTimes(1);
   expect(buttonTitles(root)).toEqual(['Log in']);
   expect(texts(root)).toContain('The Galaxy session has ended. Log in again.');
   expect(listeners).toHaveLength(0);
