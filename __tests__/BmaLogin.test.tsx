@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, NativeModules, Text, TextInput } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 import { subscribe, type Message } from '@ionic/portals-react-native';
-import { EgymMwa } from '@egym/capacitor-mwa-navigation/react-native';
+import { EgymMwa } from '@egym-private/mwa-sdk/react-native';
 import App from '../App';
 
 jest.mock(
@@ -14,7 +14,7 @@ jest.mock('@ionic/portals-react-native', () => ({
   subscribe: jest.fn(),
 }));
 
-jest.mock('@egym/capacitor-mwa-navigation/react-native', () => ({
+jest.mock('@egym-private/mwa-sdk/react-native', () => ({
   EgymMwa: { open: jest.fn(), close: jest.fn().mockResolvedValue(false) },
 }));
 

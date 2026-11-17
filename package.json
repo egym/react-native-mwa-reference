@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
-    "@egym/capacitor-mwa-navigation": "file:../../libs/lib-capacitor-mwa-navigation",
+    "@egym-private/capacitor-mwa-navigation": "^0.3.0",
+    "@egym-private/mwa-sdk": "^0.2.1",
     "@ionic/portals-react-native": "0.10.0-beta.0",
     "react": "19.2.3",
     "react-native": "0.87.1",

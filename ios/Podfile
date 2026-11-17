@@ -23,11 +23,12 @@ target 'ReactNativeMwaReference' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  # Autolinking adds the Core subspec of the @egym/capacitor-mwa-navigation pod; the ReactNative subspec holds its open call.
-  pod 'EgymCapacitorMwaNavigation/ReactNative', :path => '../node_modules/@egym/capacitor-mwa-navigation'
-  # These two plugins of the package are not on CocoaPods trunk.
-  pod 'CapacitorCommunitySqlite', :path => '../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite'
-  pod 'CapacitorNFCPassWallet', :path => '../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet'
+  # Autolinking adds the Core subspec of the @egym-private/mwa-sdk pod; the ReactNative subspec holds its open call.
+  pod 'EgymMwaSdk/ReactNative', :path => '../node_modules/@egym-private/mwa-sdk'
+  # The navigation plugin, SQLite and the NFC wallet plugin are not on CocoaPods trunk.
+  pod 'EgymCapacitorMwaNavigation', :path => '../node_modules/@egym-private/capacitor-mwa-navigation'
+  pod 'CapacitorCommunitySqlite', :path => '../node_modules/@capacitor-community/sqlite'
+  pod 'CapacitorNFCPassWallet', :path => '../node_modules/@egym/capacitor-nfc-pass-wallet'
   # Swift pods of the package import these as static libraries, which needs module maps.
   pod 'SQLCipher', :modular_headers => true
   pod 'CapacitorKeyboard', :modular_headers => true

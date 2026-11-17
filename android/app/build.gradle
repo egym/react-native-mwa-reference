@@ -105,8 +105,8 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    // Capacitor, Portals, Live Updates and the Capacitor plugins of the EGYM MWAs, and the package's open call.
-    implementation project(':egym-capacitor-mwa-navigation')
+    // Capacitor, Portals, Live Updates, the navigation plugin and the Capacitor plugins of the EGYM MWAs.
+    implementation project(':egym-mwa-sdk')
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

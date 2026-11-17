@@ -5,10 +5,11 @@ rootProject.name = 'ReactNativeMwaReference'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 
-// React Native autolinking skips Capacitor plugins, so the EGYM package and Capacitor core build from node_modules.
-// SQLite and the NFC plugin reach Android only as Gradle modules; with the linked package they sit in its node_modules.
-include ':capacitor-android', ':egym-capacitor-mwa-navigation', ':capacitor-community-sqlite', ':capacitor-nfc-pass-wallet'
+// React Native autolinking skips Capacitor plugins, so the EGYM packages and Capacitor core build from node_modules.
+// SQLite and the NFC plugin reach Android only as Gradle modules.
+include ':capacitor-android', ':egym-mwa-sdk', ':egym-capacitor-mwa-navigation', ':capacitor-community-sqlite', ':capacitor-nfc-pass-wallet'
 project(':capacitor-android').projectDir = new File(settingsDir, '../node_modules/@capacitor/android/capacitor')
-project(':egym-capacitor-mwa-navigation').projectDir = new File(settingsDir, '../node_modules/@egym/capacitor-mwa-navigation/android')
-project(':capacitor-community-sqlite').projectDir = new File(settingsDir, '../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite/android')
-project(':capacitor-nfc-pass-wallet').projectDir = new File(settingsDir, '../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet/android')
+project(':egym-mwa-sdk').projectDir = new File(settingsDir, '../node_modules/@egym-private/mwa-sdk/android')
+project(':egym-capacitor-mwa-navigation').projectDir = new File(settingsDir, '../node_modules/@egym-private/capacitor-mwa-navigation/android')
+project(':capacitor-community-sqlite').projectDir = new File(settingsDir, '../node_modules/@capacitor-community/sqlite/android')
+project(':capacitor-nfc-pass-wallet').projectDir = new File(settingsDir, '../node_modules/@egym/capacitor-nfc-pass-wallet/android')

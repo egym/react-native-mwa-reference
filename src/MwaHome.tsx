@@ -1,6 +1,6 @@
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { EgymMwa } from '@egym/capacitor-mwa-navigation/react-native';
+import { EgymMwa } from '@egym-private/mwa-sdk/react-native';
 import type { Mwa } from './mwas';
 
 type MwaHomeProps = {

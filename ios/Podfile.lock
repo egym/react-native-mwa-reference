@@ -18,7 +18,7 @@ PODS:
     - Capacitor
   - CapacitorKeyboard (8.0.6):
     - Capacitor
-  - CapacitorNFCPassWallet (0.4.0):
+  - CapacitorNFCPassWallet (0.4.2):
     - Capacitor (< 9.0, >= 7.0)
   - CapacitorPreferences (8.0.1):
     - Capacitor
@@ -26,9 +26,13 @@ PODS:
     - Capacitor
   - DoubleConversion (1.1.6):
     - ReactNativeDependencies
-  - EgymCapacitorMwaNavigation (0.2.0):
-    - EgymCapacitorMwaNavigation/Core (= 0.2.0)
-  - EgymCapacitorMwaNavigation/Core (0.2.0):
+  - EgymCapacitorMwaNavigation (0.3.0):
+    - Capacitor (< 9.0.0, >= 7.0.0)
+    - IonicLiveUpdates (< 0.6.0, >= 0.5.6)
+    - IonicPortals (< 0.15.0, >= 0.12.0)
+  - EgymMwaSdk (0.2.1):
+    - EgymMwaSdk/Core (= 0.2.1)
+  - EgymMwaSdk/Core (0.2.1):
     - Capacitor (>= 8.5.3, ~> 8.5)
     - CapacitorApp
     - CapacitorBrowser
@@ -39,10 +43,11 @@ PODS:
     - CapacitorNFCPassWallet
     - CapacitorPreferences
     - CapacitorStatusBar
+    - EgymCapacitorMwaNavigation (>= 0.3.0)
     - IonicLiveUpdates (~> 0.5.7)
     - IonicPortals (~> 0.13.2)
-  - EgymCapacitorMwaNavigation/ReactNative (0.2.0):
-    - EgymCapacitorMwaNavigation/Core
+  - EgymMwaSdk/ReactNative (0.2.1):
+    - EgymMwaSdk/Core
     - React-Core
   - fast_float (8.0.0):
     - ReactNativeDependencies
@@ -1755,12 +1760,13 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `build/rndeps-facades/boost`)
-  - "CapacitorCommunitySqlite (from `../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite`)"
+  - "CapacitorCommunitySqlite (from `../node_modules/@capacitor-community/sqlite`)"
   - CapacitorKeyboard
-  - "CapacitorNFCPassWallet (from `../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet`)"
+  - "CapacitorNFCPassWallet (from `../node_modules/@egym/capacitor-nfc-pass-wallet`)"
   - DoubleConversion (from `build/rndeps-facades/DoubleConversion`)
-  - "EgymCapacitorMwaNavigation (from `../node_modules/@egym/capacitor-mwa-navigation`)"
-  - "EgymCapacitorMwaNavigation/ReactNative (from `../node_modules/@egym/capacitor-mwa-navigation`)"
+  - "EgymCapacitorMwaNavigation (from `../node_modules/@egym-private/capacitor-mwa-navigation`)"
+  - "EgymMwaSdk (from `../node_modules/@egym-private/mwa-sdk`)"
+  - "EgymMwaSdk/ReactNative (from `../node_modules/@egym-private/mwa-sdk`)"
   - fast_float (from `build/rndeps-facades/fast_float`)
   - FBLazyVector (from `build/rncore-facades/FBLazyVector`)
   - fmt (from `build/rndeps-facades/fmt`)
@@ -1869,13 +1875,15 @@ EXTERNAL SOURCES:
   boost:
     :path: build/rndeps-facades/boost
   CapacitorCommunitySqlite:
-    :path: "../node_modules/@egym/capacitor-mwa-navigation/node_modules/@capacitor-community/sqlite"
+    :path: "../node_modules/@capacitor-community/sqlite"
   CapacitorNFCPassWallet:
-    :path: "../node_modules/@egym/capacitor-mwa-navigation/node_modules/@egym/capacitor-nfc-pass-wallet"
+    :path: "../node_modules/@egym/capacitor-nfc-pass-wallet"
   DoubleConversion:
     :path: build/rndeps-facades/DoubleConversion
   EgymCapacitorMwaNavigation:
-    :path: "../node_modules/@egym/capacitor-mwa-navigation"
+    :path: "../node_modules/@egym-private/capacitor-mwa-navigation"
+  EgymMwaSdk:
+    :path: "../node_modules/@egym-private/mwa-sdk"
   fast_float:
     :path: build/rndeps-facades/fast_float
   FBLazyVector:
@@ -2058,11 +2066,12 @@ SPEC CHECKSUMS:
   CapacitorDevice: b50f119138a2b69a1e9213f4468d1e75e4239cca
   CapacitorHaptics: 4e1e84c2b74fb5918e403fb8f0e73a07d05937df
   CapacitorKeyboard: d96c5f659eb0a33dfc734640252836fa9575e8ad
-  CapacitorNFCPassWallet: 0cf854995e90b5256cd0607a0ba8eca21042e3be
+  CapacitorNFCPassWallet: d1efc75ba8cd335b9910c13aab060d7ec3371ec4
   CapacitorPreferences: 0fa33b3affebf12d96358b491ed7c2b39bec3270
   CapacitorStatusBar: b692a4cf12b3fe3a7b7ece86da62106065d78fdc
   DoubleConversion: 501a575c40c0b50c89685762dd3e415e6bb26fb0
-  EgymCapacitorMwaNavigation: 91926e758e181ff865388bf9b601868934b8955f
+  EgymCapacitorMwaNavigation: 0d8cde38da06bcc393bb7ad27cc47b6a463c618d
+  EgymMwaSdk: cd4e8d6bd22d317f566386b191a7efa4ca74c64a
   fast_float: 7c925d1cebf8328d4018d061f49377e9f887e3b4
   FBLazyVector: e08a27053b503eeb756ea4bd75d570d2f2522a1b
   fmt: ba0886e864ebb21d14c98b2e12e164b8002f5b93
@@ -2153,6 +2162,6 @@ SPEC CHECKSUMS:
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
   ZIPFoundation: dfd3d681c4053ff7e2f7350bc4e53b5dba3f5351
 
-PODFILE CHECKSUM: f89769e2debdf0dd367c01bdc39a98f7ddfdd628
+PODFILE CHECKSUM: a9952e933d21a22a6062e9b63aa1b83e931b0d35
 
 COCOAPODS: 1.15.2
