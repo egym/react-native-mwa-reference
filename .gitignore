@@ -75,3 +75,6 @@ yarn-error.log
 
 # Bundler writes its own version into the lock file; CocoaPods versions are pinned in ios/Podfile.lock
 Gemfile.lock
+
+# The optional BMA login of the README: local hosts and channel, never committed
+/bma-login.json

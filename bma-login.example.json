@@ -1,0 +1,5 @@
+{
+  "galaxyURL": "https://brand.galaxy.example.com",
+  "mwaApiURL": "https://mwa-api.example.com",
+  "liveUpdateChannel": "your-appflow-channel"
+}
