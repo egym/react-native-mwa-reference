@@ -1,0 +1,53 @@
+import { useEffect } from 'react';
+import { BackHandler, StyleSheet } from 'react-native';
+import {
+  PortalView,
+  subscribe,
+  type Portal,
+} from '@ionic/portals-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+type MwaScreenProps = {
+  portal: Portal;
+  onClose: () => void;
+};
+
+export function MwaScreen({ portal, onClose }: MwaScreenProps) {
+  useEffect(() => {
+    // An MWA asks its host to close it with a `dismiss` message on the `subscription` topic.
+    const subscription = subscribe('subscription', message => {
+      if (message.data?.type === 'dismiss') {
+        onClose();
+      }
+    });
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        onClose();
+        return true;
+      },
+    );
+
+    return () => {
+      subscription.remove();
+      backHandler.remove();
+    };
+  }, [onClose]);
+
+  return (
+    <SafeAreaView style={styles.screen}>
+      {/* PortalView writes to its portal prop, which development builds freeze, so pass a copy. */}
+      <PortalView portal={{ ...portal }} style={styles.portal} />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  portal: {
+    flex: 1,
+  },
+});
