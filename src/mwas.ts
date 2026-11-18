@@ -1,33 +1,11 @@
-import { Platform } from 'react-native';
-import type { CapacitorPlugin, Portal } from '@ionic/portals-react-native';
-
+/** One MWA button: what the app passes to `EgymMwa.open`. */
 export type Mwa = {
   title: string;
-  portal: Portal;
+  appId: string;
+  channel: string;
+  startingRoute: string;
+  initialContext: Record<string, unknown>;
 };
-
-const preferencesPlugin: CapacitorPlugin = {
-  androidClassPath: 'com.capacitorjs.plugins.preferences.PreferencesPlugin',
-  iosClassName: 'PreferencesPlugin',
-};
-
-const sqlitePlugin: CapacitorPlugin = {
-  androidClassPath:
-    'com.getcapacitor.community.database.sqlite.CapacitorSQLitePlugin',
-  iosClassName: 'CapacitorSQLitePlugin',
-};
-
-const nfcPassWalletPlugin: CapacitorPlugin = {
-  androidClassPath:
-    'com.egym.capacitor.nfcpasswallet.CapacitorNFCPassWalletPlugin',
-  iosClassName: 'CapacitorNFCPassWalletPlugin',
-};
-
-// The same plugins as the native reference apps: SQLite only on Android.
-const plugins = Platform.select({
-  android: [preferencesPlugin, sqlitePlugin, nfcPassWalletPlugin],
-  default: [preferencesPlugin, nfcPassWalletPlugin],
-});
 
 const sampleContext = {
   email: 'email@example.com',
@@ -48,33 +26,34 @@ export type LoggedInMember = {
   channel: string;
 };
 
-const createPortal = (
+const createMwa = (
+  title: string,
   app: string,
   appId: string,
   member?: LoggedInMember,
-): Portal => ({
-  name: `egym-${app}`,
-  startDir: `egym-${app}`,
-  plugins,
-  initialContext: {
-    startingRoute: `/${app}/home`,
-    ...(member?.initialContext ?? sampleContext),
-  },
-  liveUpdate: {
-    appId,
-    channel: member?.channel ?? 'reference',
-    syncOnAdd: false,
-  },
+): Mwa => ({
+  title,
+  appId,
+  channel: member?.channel ?? 'reference',
+  startingRoute: `/${app}/home`,
+  initialContext: member?.initialContext ?? sampleContext,
 });
 
-// Bioage always runs with the sample context.
+// The web reference MWA (egym/mwa-reference) demos the EGYM plugins, the MWA navigation plugin among them.
+const referenceMwa: Mwa = {
+  title: 'Reference MWA',
+  appId: '9d727e58',
+  channel: 'develop',
+  startingRoute: '/home',
+  initialContext: sampleContext,
+};
+
+// Bioage and the reference MWA always run with the sample context.
 export const createMwas = (member?: LoggedInMember): Mwa[] => [
-  {
-    title: 'Workouts MWA',
-    portal: createPortal('workouts', '851e0894', member),
-  },
-  { title: 'Bioage MWA', portal: createPortal('bioage', '068a3720') },
-  { title: 'NFC MWA', portal: createPortal('nfc', 'dcbe378a', member) },
+  createMwa('Workouts MWA', 'workouts', '851e0894', member),
+  createMwa('Bioage MWA', 'bioage', '068a3720'),
+  createMwa('NFC MWA', 'nfc', 'dcbe378a', member),
+  referenceMwa,
 ];
 
 export const mwas = createMwas();
