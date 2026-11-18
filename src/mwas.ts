@@ -63,7 +63,7 @@ const createPortal = (
   liveUpdate: {
     appId,
     channel: member?.channel ?? 'reference',
-    syncOnAdd: true,
+    syncOnAdd: false,
   },
 });
 
